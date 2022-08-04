@@ -4,6 +4,7 @@ import com.google.common.base.Strings;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,6 +35,12 @@ public class DynmapExport extends JavaPlugin {
 		getCommand("dynmapexport").setTabCompleter(command);
 	}
 	
+	public @Nullable String downloadTile(String world, String map, int chunkX, int chunkZ, int zoom) {
+		File dest = getDestFile(Instant.now(), chunkX, chunkZ);
+		return download(getPath(world, map, chunkX, chunkZ, zoom), dest)
+				? dest.getPath() : null;
+	}
+	
 	/**
 	 * Download the Dynmap tile at <code>path</code> to <code>dest</code>.
 	 *
@@ -41,7 +48,7 @@ public class DynmapExport extends JavaPlugin {
 	 * @param dest the destination file to download to.
 	 * @return whether the download succeeded
 	 */
-	private boolean download(String path, @NotNull File dest) {
+	private static boolean download(String path, @NotNull File dest) {
 		int port = config.getInt("dynmap-port");
 		
 		try {
@@ -69,7 +76,7 @@ public class DynmapExport extends JavaPlugin {
 	 * @return the path to the Dynmap tile image at
 	 * <code>{world}/{map}/{regionX}_{regionZ}/{zoom}_{chunkX}_{chunkZ}.png</code>
 	 */
-	private @NotNull String getPath(String world, String map, int chunkX, int chunkZ, int zoom) {
+	private static @NotNull String getPath(String world, String map, int chunkX, int chunkZ, int zoom) {
 		final int regionX = chunkX / 32;
 		final int regionZ = chunkZ / 32;
 		final String zoomStr = (zoom > 0) ? Strings.repeat("z", zoom) + "_" : "";

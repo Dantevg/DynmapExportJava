@@ -6,10 +6,10 @@ description: TODO
 author: RedPolygon
 website: dantevg.nl/mods-plugins/DynmapExport
 commands:
-  dynmapstorer:
+  dynmapexport:
     description: DynmapExport command
-    usage: "Usage: /<command>"
+    usage: "Usage: /dynmapexport <world> <map> <chunkX> <chunkZ> <zoom>"
     permission: dynmapexport.*
 permissions:
-  dynmapstorer.*:
-    description: Allows running /dynmapstorer command
+  dynmapexport.*:
+    description: Allows running /dynmapexport command
