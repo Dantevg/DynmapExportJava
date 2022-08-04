@@ -28,6 +28,7 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 			} else {
 				sender.sendMessage("Could not save tile (see console)");
 			}
+			return true;
 		}
 		return false;
 	}

@@ -76,13 +76,14 @@ public class DynmapExport extends JavaPlugin {
 	 * @return the path to the Dynmap tile image at
 	 * <code>{world}/{map}/{regionX}_{regionZ}/{zoom}_{chunkX}_{chunkZ}.png</code>
 	 */
-	private static @NotNull String getPath(String world, String map, int chunkX, int chunkZ, int zoom) {
+	private @NotNull String getPath(String world, String map, int chunkX, int chunkZ, int zoom) {
 		final int regionX = chunkX / 32;
 		final int regionZ = chunkZ / 32;
 		final String zoomStr = (zoom > 0) ? Strings.repeat("z", zoom) + "_" : "";
+		String extension = config.getString("extension", "png");
 		
-		return String.format("%s/%s/%d_%d/%s%d_%d.png",
-				world, map, regionX, regionZ, zoomStr, chunkX, chunkZ);
+		return String.format("tiles/%s/%s/%d_%d/%s%d_%d.%s",
+				world, map, regionX, regionZ, zoomStr, chunkX, chunkZ, extension);
 	}
 	
 	/**

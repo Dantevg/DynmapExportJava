@@ -1,0 +1,4 @@
+# DynmapExport config file
+
+dynmap-port: 8123
+extension: png
