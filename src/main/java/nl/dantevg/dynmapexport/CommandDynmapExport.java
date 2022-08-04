@@ -1,4 +1,4 @@
-package nl.dantevg.dynmapstorer;
+package nl.dantevg.dynmapexport;
 
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
@@ -7,10 +7,10 @@ import org.bukkit.command.TabCompleter;
 
 import java.util.List;
 
-public class CommandDynmapStorer implements CommandExecutor, TabCompleter {
-	private final DynmapStorer plugin;
+public class CommandDynmapExport implements CommandExecutor, TabCompleter {
+	private final DynmapExport plugin;
 	
-	public CommandDynmapStorer(DynmapStorer plugin) {
+	public CommandDynmapExport(DynmapExport plugin) {
 		this.plugin = plugin;
 	}
 	

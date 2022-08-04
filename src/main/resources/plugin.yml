@@ -1,15 +1,15 @@
-main: nl.dantevg.dynmapstorer.DynmapStorer
-name: DynmapStorer
+main: nl.dantevg.dynmapexport.DynmapExport
+name: DynmapExport
 version: ${version} # Filled in automatically by maven
 api-version: 1.13
 description: TODO
 author: RedPolygon
-website: dantevg.nl/mods-plugins/DynmapStorer
+website: dantevg.nl/mods-plugins/DynmapExport
 commands:
   dynmapstorer:
-    description: DynmapStorer command
-    usage: "Usage: /<command> store"
-    permission: dynmapstorer.*
+    description: DynmapExport command
+    usage: "Usage: /<command>"
+    permission: dynmapexport.*
 permissions:
   dynmapstorer.*:
-    description: Allows running /webstats command
+    description: Allows running /dynmapstorer command
