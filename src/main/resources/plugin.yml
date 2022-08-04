@@ -1,0 +1,15 @@
+main: nl.dantevg.dynmapstorer.DynmapStorer
+name: DynmapStorer
+version: ${version} # Filled in automatically by maven
+api-version: 1.13
+description: TODO
+author: RedPolygon
+website: dantevg.nl/mods-plugins/DynmapStorer
+commands:
+  dynmapstorer:
+    description: DynmapStorer command
+    usage: "Usage: /<command> store"
+    permission: dynmapstorer.*
+permissions:
+  dynmapstorer.*:
+    description: Allows running /webstats command
