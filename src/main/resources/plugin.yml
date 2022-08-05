@@ -5,10 +5,11 @@ api-version: 1.13
 description: TODO
 author: RedPolygon
 website: dantevg.nl/mods-plugins/DynmapExport
+softdepend: [Dynmap]
 commands:
   dynmapexport:
     description: DynmapExport command
-    usage: "Usage: /dynmapexport <world> <map> <chunkX> <chunkZ> <zoom>"
+    usage: "Usage: /dynmapexport <world> <map> <x> <z> <zoom>"
     permission: dynmapexport.*
 permissions:
   dynmapexport.*:
