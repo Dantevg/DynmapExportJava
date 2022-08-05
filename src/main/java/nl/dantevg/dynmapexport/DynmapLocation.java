@@ -2,8 +2,6 @@ package nl.dantevg.dynmapexport;
 
 import org.bukkit.util.Vector;
 
-import java.util.logging.Level;
-
 public class DynmapLocation {
 	public static final int SCALE_FACTOR = 128;
 	
@@ -19,6 +17,19 @@ public class DynmapLocation {
 	 * @param zoom        the zoom-out level, 0 is fully zoomed in.
 	 */
 	public DynmapLocation(DynmapWebAPI.World world, DynmapWebAPI.Map map, Vector worldCoords, int zoom) {
+		this.world = world;
+		this.map = map;
+		this.worldCoords = worldCoords;
+		this.zoom = zoom;
+	}
+	
+	public DynmapLocation(DynmapWebAPI.Configuration worldConfiguration, String worldName, String mapName, Vector worldCoords, int zoom) {
+		DynmapWebAPI.World world = worldConfiguration.getWorldByName(worldName);
+		if (world == null) throw new IllegalArgumentException("not a valid world");
+		
+		DynmapWebAPI.Map map = world.getMapByName(mapName);
+		if (map == null) throw new IllegalArgumentException("not a valid map");
+		
 		this.world = world;
 		this.map = map;
 		this.worldCoords = worldCoords;

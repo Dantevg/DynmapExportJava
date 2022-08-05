@@ -22,7 +22,7 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 			int x = Integer.parseInt(args[2]);
 			int z = Integer.parseInt(args[3]);
 			int zoom = Integer.parseInt(args[4]);
-			String path = dynmapExport.downloadTile(world, map, x, z, zoom);
+			String path = dynmapExport.downloader.downloadTile(world, map, x, z, zoom);
 			if (path != null) {
 				sender.sendMessage("Saved tile at " + path);
 			} else {
