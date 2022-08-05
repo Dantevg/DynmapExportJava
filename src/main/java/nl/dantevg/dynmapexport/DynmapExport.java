@@ -18,8 +18,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class DynmapExport extends JavaPlugin {
-	static FileConfiguration config;
-	static Logger logger;
+	FileConfiguration config;
+	Logger logger;
 	
 	@Override
 	public void onEnable() {
@@ -48,12 +48,13 @@ public class DynmapExport extends JavaPlugin {
 	 * @param dest the destination file to download to.
 	 * @return whether the download succeeded
 	 */
-	private static boolean download(String path, @NotNull File dest) {
+	private boolean download(String path, @NotNull File dest) {
 		int port = config.getInt("dynmap-port");
 		
 		try {
 			URL url = new URL(String.format("http://localhost:%d/%s", port, path));
 			InputStream inputStream = url.openStream();
+			dest.getParentFile().mkdirs(); // Make all directories on path to file
 			long bytesWritten = Files.copy(inputStream, dest.toPath());
 			if (bytesWritten == 0) logger.log(Level.WARNING, "Downloaded 0 bytes from tile " + path);
 			return bytesWritten > 0;
@@ -76,14 +77,13 @@ public class DynmapExport extends JavaPlugin {
 	 * @return the path to the Dynmap tile image at
 	 * <code>{world}/{map}/{regionX}_{regionZ}/{zoom}_{chunkX}_{chunkZ}.png</code>
 	 */
-	private @NotNull String getPath(String world, String map, int chunkX, int chunkZ, int zoom) {
+	private static @NotNull String getPath(String world, String map, int chunkX, int chunkZ, int zoom) {
 		final int regionX = chunkX / 32;
 		final int regionZ = chunkZ / 32;
 		final String zoomStr = (zoom > 0) ? Strings.repeat("z", zoom) + "_" : "";
-		String extension = config.getString("extension", "png");
 		
-		return String.format("tiles/%s/%s/%d_%d/%s%d_%d.%s",
-				world, map, regionX, regionZ, zoomStr, chunkX, chunkZ, extension);
+		return String.format("tiles/%s/%s/%d_%d/%s%d_%d.png",
+				world, map, regionX, regionZ, zoomStr, chunkX, chunkZ);
 	}
 	
 	/**
