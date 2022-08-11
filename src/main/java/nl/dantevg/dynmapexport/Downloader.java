@@ -131,8 +131,8 @@ public class Downloader {
 	
 	/**
 	 * Get the file where the image at the given location is to be stored.
-	 * The instant gets formatted in ISO 8601 basic format, truncated to minutes
-	 * (for example, <code>20220804T213200Z</code>).
+	 * The instant gets formatted in ISO 8601 basic format, truncated to seconds
+	 * (for example, <code>20220804T213215Z</code>).
 	 *
 	 * @param now  the current time
 	 * @param tile the Dynmap tile coordinates
@@ -141,7 +141,7 @@ public class Downloader {
 	private @NotNull File getDestFile(@NotNull Instant now, TileLocation tile) {
 		// Convert extended format to basic format without separators (which are problematic in filenames)
 		// https://stackoverflow.com/a/39820917
-		String datetime = now.truncatedTo(ChronoUnit.MINUTES).toString()
+		String datetime = now.truncatedTo(ChronoUnit.SECONDS).toString()
 				.replace("-", "")
 				.replace(":", "");
 		File directory = new File(plugin.getDataFolder(), "exports/" + datetime);

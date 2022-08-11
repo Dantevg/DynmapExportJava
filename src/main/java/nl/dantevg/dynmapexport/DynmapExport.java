@@ -3,12 +3,14 @@ package nl.dantevg.dynmapexport;
 import com.google.gson.Gson;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -28,11 +30,11 @@ public class DynmapExport extends JavaPlugin {
 	
 	@Override
 	public void onEnable() {
+		logger = getLogger();
+		
 		// Config
 		config = getConfig();
 		saveDefaultConfig();
-		
-		logger = getLogger();
 		
 		worldConfiguration = getDynmapConfiguration();
 		
@@ -47,6 +49,13 @@ public class DynmapExport extends JavaPlugin {
 		getCommand("dynmapexport").setTabCompleter(command);
 		
 		downloader = new Downloader(this);
+		
+		// Scheduler
+		if (config.contains("schedule")) {
+			String schedule = config.getString("schedule");
+			Duration duration = Duration.parse("PT" + schedule);
+			startScheduledTask(duration);
+		}
 	}
 	
 	/**
@@ -91,6 +100,20 @@ public class DynmapExport extends JavaPlugin {
 		}
 		
 		return new ExportConfig(world, map, zoom, from, to);
+	}
+	
+	private void startScheduledTask(Duration duration) {
+		new ExportTask().runTaskTimerAsynchronously(this, 0, duration.getSeconds() * 20);
+	}
+	
+	private class ExportTask extends BukkitRunnable {
+		@Override
+		public void run() {
+			for (ExportConfig exportConfig : exportConfigs) {
+				downloader.downloadTiles(exportConfig);
+			}
+		}
+		
 	}
 	
 }
