@@ -1,14 +1,12 @@
 package nl.dantevg.dynmapexport;
 
 import com.google.common.base.Strings;
-import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
@@ -19,11 +17,9 @@ import java.util.logging.Level;
 
 public class Downloader {
 	private final DynmapExport plugin;
-	private final DynmapWebAPI.Configuration worldConfiguration;
 	
 	public Downloader(DynmapExport plugin) {
 		this.plugin = plugin;
-		worldConfiguration = getDynmapConfiguration();
 	}
 	
 	/**
@@ -37,7 +33,7 @@ public class Downloader {
 	 * @return the path to the downloaded file
 	 */
 	public @Nullable String downloadTile(String worldName, String mapName, int x, int z, int zoom) {
-		DynmapWebAPI.World world = worldConfiguration.getWorldByName(worldName);
+		DynmapWebAPI.World world = plugin.worldConfiguration.getWorldByName(worldName);
 		if (world == null) throw new IllegalArgumentException("not a valid world");
 		
 		DynmapWebAPI.Map map = world.getMapByName(mapName);
@@ -69,12 +65,12 @@ public class Downloader {
 	 * @param to     the second tile corner, diagonally opposing <code>from</code>
 	 * @return the amount of tiles downloaded
 	 */
-	public int downloadTiles(ExportConfig config, TileLocation from, TileLocation to) {
+	public int downloadTiles(ExportConfig config) {
 		int nDownloaded = 0;
 		Instant now = Instant.now();
 		
-		for (int x = Math.min(from.x, to.x); x < Math.max(from.x, to.x); x++) {
-			for (int y = Math.min(from.y, to.y); y < Math.max(from.y, to.y); y++) {
+		for (int x = Math.min(config.from.x, config.to.x); x < Math.max(config.from.x, config.to.x); x++) {
+			for (int y = Math.min(config.from.y, config.to.y); y < Math.max(config.from.y, config.to.y); y++) {
 				TileLocation tile = new TileLocation(x, y);
 				File dest = getDestFile(now, tile);
 				if (download(getPath(config, tile), dest)) nDownloaded++;
@@ -82,26 +78,6 @@ public class Downloader {
 		}
 		
 		return nDownloaded;
-	}
-	
-	/**
-	 * Download the world configuration from Dynmap, which is used to determine
-	 * the tile coordinates from world coordinates.
-	 *
-	 * @return the world configuration
-	 */
-	private @Nullable DynmapWebAPI.Configuration getDynmapConfiguration() {
-		int port = plugin.config.getInt("dynmap-port");
-		try {
-			URL url = new URL(String.format("http://localhost:%d/up/configuration", port));
-			InputStreamReader reader = new InputStreamReader(url.openStream());
-			return new Gson().fromJson(reader, DynmapWebAPI.Configuration.class);
-		} catch (MalformedURLException e) {
-			plugin.logger.log(Level.SEVERE, e.getMessage());
-		} catch (IOException e) {
-			plugin.logger.log(Level.SEVERE, "Could not download dynmap worlds configuration", e);
-		}
-		return null;
 	}
 	
 	/**

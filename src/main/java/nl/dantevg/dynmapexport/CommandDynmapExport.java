@@ -16,7 +16,14 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 	
 	@Override
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
-		if (args.length == 5) {
+		if (args.length == 0) {
+			// Export all from config.yml
+			for (ExportConfig exportConfig : dynmapExport.exportConfigs) {
+				int nTiles = dynmapExport.downloader.downloadTiles(exportConfig);
+				sender.sendMessage("Downloaded " + nTiles + "tiles");
+			}
+		} else if (args.length == 5) {
+			// Export single
 			String world = args[0];
 			String map = args[1];
 			int x = Integer.parseInt(args[2]);
