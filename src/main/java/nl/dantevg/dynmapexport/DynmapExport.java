@@ -37,29 +37,7 @@ public class DynmapExport extends JavaPlugin {
 		worldConfiguration = getDynmapConfiguration();
 		
 		exportConfigs = config.getMapList("exports").stream()
-				.map(exportMap -> {
-					String worldName = (String) exportMap.get("world");
-					String mapName = (String) exportMap.get("map");
-					int zoom = (int) exportMap.get("zoom");
-					Map<String, Integer> fromMap = (Map<String, Integer>) exportMap.get("from");
-					Map<String, Integer> toMap = (Map<String, Integer>) exportMap.get("to");
-					TileLocation from = new TileLocation(fromMap.get("x"), fromMap.get("y"));
-					TileLocation to = new TileLocation(toMap.get("x"), toMap.get("y"));
-					
-					DynmapWebAPI.World world = worldConfiguration.getWorldByName(worldName);
-					if (world == null) {
-						logger.log(Level.SEVERE, worldName + " is not a valid world, ignoring");
-						return null;
-					}
-					
-					DynmapWebAPI.Map map = world.getMapByName(mapName);
-					if (map == null) {
-						logger.log(Level.SEVERE, mapName + " is not a valid map for world " + worldName + ", ignoring");
-						return null;
-					}
-					
-					return new ExportConfig(world, map, zoom, from, to);
-				})
+				.map(this::getExportConfig)
 				.filter(Objects::nonNull)
 				.collect(Collectors.toList());
 		
@@ -89,6 +67,30 @@ public class DynmapExport extends JavaPlugin {
 			logger.log(Level.SEVERE, "Could not download dynmap worlds configuration", e);
 		}
 		return null;
+	}
+	
+	private ExportConfig getExportConfig(Map<?, ?> exportMap) {
+		String worldName = (String) exportMap.get("world");
+		String mapName = (String) exportMap.get("map");
+		int zoom = (int) exportMap.get("zoom");
+		Map<String, Integer> fromMap = (Map<String, Integer>) exportMap.get("from");
+		Map<String, Integer> toMap = (Map<String, Integer>) exportMap.get("to");
+		TileLocation from = new TileLocation(fromMap.get("x"), fromMap.get("y"));
+		TileLocation to = new TileLocation(toMap.get("x"), toMap.get("y"));
+		
+		DynmapWebAPI.World world = worldConfiguration.getWorldByName(worldName);
+		if (world == null) {
+			logger.log(Level.SEVERE, worldName + " is not a valid world, ignoring");
+			return null;
+		}
+		
+		DynmapWebAPI.Map map = world.getMapByName(mapName);
+		if (map == null) {
+			logger.log(Level.SEVERE, mapName + " is not a valid map for world " + worldName + ", ignoring");
+			return null;
+		}
+		
+		return new ExportConfig(world, map, zoom, from, to);
 	}
 	
 }
