@@ -2,7 +2,6 @@ package nl.dantevg.dynmapexport;
 
 import com.google.common.base.Strings;
 import com.google.gson.Gson;
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -38,19 +37,40 @@ public class Downloader {
 	 * @return the path to the downloaded file
 	 */
 	public @Nullable String downloadTile(String world, String map, int x, int z, int zoom) {
-		return downloadTile(new DynmapLocation(worldConfiguration, world, map, new Vector(x, DynmapExport.Y_LEVEL, z), zoom));
+		return downloadTile(
+				new ExportConfig(worldConfiguration, world, map, zoom),
+				new WorldLocation(x, DynmapExport.Y_LEVEL, z));
 	}
 	
 	/**
 	 * Download a single tile at the given location.
 	 *
-	 * @param location the location of the tile
+	 * @param config        the export configuration
+	 * @param worldLocation the in-game coordinates of the tile
 	 * @return the path to the downloaded file
 	 */
-	public @Nullable String downloadTile(DynmapLocation location) {
-		File dest = getDestFile(Instant.now(), location);
-		String tilePath = getPath(location);
+	public @Nullable String downloadTile(ExportConfig config, WorldLocation worldLocation) {
+		TileLocation tileLocation = worldLocation.toTileLocation(config.map, config.zoom);
+		File dest = getDestFile(Instant.now(), tileLocation);
+		String tilePath = getPath(config, worldLocation, tileLocation);
 		return download(tilePath, dest) ? dest.getPath() : null;
+	}
+	
+	/**
+	 * Download multiple tiles in the rectangle between <code>from</code> and <code>to</code> (inclusive)
+	 *
+	 * @param config the export configuration
+	 * @param from   the first tile corner
+	 * @param to     the second tile corner, diagonally opposing <code>from</code>
+	 */
+	public void downloadTiles(ExportConfig config, TileLocation from, TileLocation to) {
+		Instant now = Instant.now();
+		
+		for (int x = Math.min(from.x, to.x); x < Math.max(from.x, to.x); x++) {
+			for (int y = Math.min(from.y, to.y); y < Math.max(from.y, to.y); y++) {
+				// TODO: make tile from x and y coordinates and download
+			}
+		}
 	}
 	
 	/**
@@ -102,18 +122,21 @@ public class Downloader {
 	/**
 	 * Get the Dynmap path to the tile specified.
 	 *
-	 * @param location the location in the world
+	 * @param config        the export configuration
+	 * @param worldLocation the in-game coordinates
+	 * @param tile          the Dynmap tile coordinates
 	 * @return the path to the Dynmap tile image at
 	 * <code>{world}/{map}/{regionX}_{regionZ}/{zoom}_{tileX}_{tileY}.png</code>
 	 */
-	private @NotNull String getPath(DynmapLocation location) {
-		final int regionX = location.getWorldX() / 16 / 32;
-		final int regionZ = location.getWorldZ() / 16 / 32;
-		final String zoomStr = (location.zoom > 0) ? Strings.repeat("z", location.zoom) + "_" : "";
+	private @NotNull String getPath(ExportConfig config, WorldLocation worldLocation, TileLocation tile) {
+		// TODO: decouple world coordinates from tile coordinates?
+		final int regionX = worldLocation.x / 16 / 32;
+		final int regionZ = worldLocation.z / 16 / 32;
+		final String zoomStr = (config.zoom > 0) ? Strings.repeat("z", config.zoom) + "_" : "";
 		
 		return String.format("tiles/%s/%s/%d_%d/%s%d_%d.png",
-				location.world.name, location.map.prefix, regionX, regionZ, zoomStr,
-				location.getTileX(), location.getTileY());
+				config.world.name, config.map.prefix, regionX, regionZ,
+				zoomStr, tile.x, tile.y);
 	}
 	
 	/**
@@ -121,18 +144,18 @@ public class Downloader {
 	 * The instant gets formatted in ISO 8601 basic format, truncated to minutes
 	 * (for example, <code>20220804T213200Z</code>).
 	 *
-	 * @param now      the current time
-	 * @param location the location in the world
+	 * @param now  the current time
+	 * @param tile the Dynmap tile coordinates
 	 * @return the file at location <code>plugins/DynmapExport/exports/{now}/{tileX}_{tileY}.png</code>
 	 */
-	private @NotNull File getDestFile(@NotNull Instant now, DynmapLocation location) {
+	private @NotNull File getDestFile(@NotNull Instant now, TileLocation tile) {
 		// Convert extended format to basic format without separators (which are problematic in filenames)
 		// https://stackoverflow.com/a/39820917
 		String datetime = now.truncatedTo(ChronoUnit.MINUTES).toString()
 				.replace("-", "")
 				.replace(":", "");
 		File directory = new File(plugin.getDataFolder(), "exports/latest");
-		return new File(directory, String.format("%d_%d.png", location.getTileX(), location.getTileY()));
+		return new File(directory, String.format("%d_%d.png", tile.x, tile.y));
 	}
 	
 }
