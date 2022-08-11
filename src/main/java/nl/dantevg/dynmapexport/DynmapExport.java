@@ -10,6 +10,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -40,8 +41,10 @@ public class DynmapExport extends JavaPlugin {
 					String worldName = (String) exportMap.get("world");
 					String mapName = (String) exportMap.get("map");
 					int zoom = (int) exportMap.get("zoom");
-					TileLocation from = new TileLocation((int) exportMap.get("from.x"), (int) exportMap.get("from.y"));
-					TileLocation to = new TileLocation((int) exportMap.get("to.x"), (int) exportMap.get("to.y"));
+					Map<String, Integer> fromMap = (Map<String, Integer>) exportMap.get("from");
+					Map<String, Integer> toMap = (Map<String, Integer>) exportMap.get("to");
+					TileLocation from = new TileLocation(fromMap.get("x"), fromMap.get("y"));
+					TileLocation to = new TileLocation(toMap.get("x"), toMap.get("y"));
 					
 					DynmapWebAPI.World world = worldConfiguration.getWorldByName(worldName);
 					if (world == null) {

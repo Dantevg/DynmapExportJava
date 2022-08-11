@@ -61,16 +61,19 @@ public class Downloader {
 	 * Download multiple tiles in the rectangle between <code>from</code> and <code>to</code> (inclusive)
 	 *
 	 * @param config the export configuration
-	 * @param from   the first tile corner
-	 * @param to     the second tile corner, diagonally opposing <code>from</code>
 	 * @return the amount of tiles downloaded
 	 */
 	public int downloadTiles(ExportConfig config) {
 		int nDownloaded = 0;
 		Instant now = Instant.now();
 		
-		for (int x = Math.min(config.from.x, config.to.x); x < Math.max(config.from.x, config.to.x); x++) {
-			for (int y = Math.min(config.from.y, config.to.y); y < Math.max(config.from.y, config.to.y); y++) {
+		int minX = zoomedFloor(Math.min(config.from.x, config.to.x), config.zoom);
+		int maxX = zoomedCeil(Math.max(config.from.x, config.to.x), config.zoom);
+		int minY = zoomedFloor(Math.min(config.from.y, config.to.y), config.zoom);
+		int maxY = zoomedCeil(Math.max(config.from.y, config.to.y), config.zoom);
+		
+		for (int x = minX; x <= maxX; x += 1 << config.zoom) {
+			for (int y = minY; y <= maxY; y += 1 << config.zoom) {
 				TileLocation tile = new TileLocation(x, y);
 				File dest = getDestFile(now, tile);
 				if (download(getPath(config, tile), dest)) nDownloaded++;
@@ -141,8 +144,16 @@ public class Downloader {
 		String datetime = now.truncatedTo(ChronoUnit.MINUTES).toString()
 				.replace("-", "")
 				.replace(":", "");
-		File directory = new File(plugin.getDataFolder(), "exports/latest");
+		File directory = new File(plugin.getDataFolder(), "exports/" + datetime);
 		return new File(directory, String.format("%d_%d.png", tile.x, tile.y));
+	}
+	
+	private static int zoomedFloor(int value, int zoom) {
+		return value / (1 << zoom) * (1 << zoom);
+	}
+	
+	private static int zoomedCeil(int value, int zoom) {
+		return (int) Math.ceil((double) value / (1 << zoom)) * (1 << zoom);
 	}
 	
 }

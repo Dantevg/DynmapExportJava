@@ -20,8 +20,9 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 			// Export all from config.yml
 			for (ExportConfig exportConfig : dynmapExport.exportConfigs) {
 				int nTiles = dynmapExport.downloader.downloadTiles(exportConfig);
-				sender.sendMessage("Downloaded " + nTiles + "tiles");
+				sender.sendMessage("Downloaded " + nTiles + " tiles");
 			}
+			return true;
 		} else if (args.length == 5) {
 			// Export single
 			String world = args[0];
