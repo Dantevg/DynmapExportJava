@@ -29,30 +29,35 @@ public class Downloader {
 	/**
 	 * Download a single tile at the given location.
 	 *
-	 * @param world the name of the world (e.g. <code>"world"</code>)
-	 * @param map   the name of the map, or "prefix" (e.g. <code>"flat"</code>)
-	 * @param x     the in-game block x-coordinate
-	 * @param z     the in-game block z-coordinate
-	 * @param zoom  the zoom-out level, 0 is fully zoomed in.
+	 * @param worldName the name of the world (e.g. <code>"world"</code>)
+	 * @param mapName   the name of the map, or "prefix" (e.g. <code>"flat"</code>)
+	 * @param x         the in-game block x-coordinate
+	 * @param z         the in-game block z-coordinate
+	 * @param zoom      the zoom-out level, 0 is fully zoomed in.
 	 * @return the path to the downloaded file
 	 */
-	public @Nullable String downloadTile(String world, String map, int x, int z, int zoom) {
-		return downloadTile(
-				new ExportConfig(worldConfiguration, world, map, zoom),
-				new WorldLocation(x, DynmapExport.Y_LEVEL, z));
+	public @Nullable String downloadTile(String worldName, String mapName, int x, int z, int zoom) {
+		DynmapWebAPI.World world = worldConfiguration.getWorldByName(worldName);
+		if (world == null) throw new IllegalArgumentException("not a valid world");
+		
+		DynmapWebAPI.Map map = world.getMapByName(mapName);
+		if (map == null) throw new IllegalArgumentException("not a valid map");
+		
+		TileLocation tile = new WorldLocation(x, DynmapExport.Y_LEVEL, z).toTileLocation(map, zoom);
+		ExportConfig config = new ExportConfig(world, map, zoom, tile);
+		return downloadTile(config, tile);
 	}
 	
 	/**
 	 * Download a single tile at the given location.
 	 *
-	 * @param config        the export configuration
-	 * @param worldLocation the in-game coordinates of the tile
+	 * @param config       the export configuration
+	 * @param tileLocation the tile coordinates
 	 * @return the path to the downloaded file
 	 */
-	public @Nullable String downloadTile(ExportConfig config, WorldLocation worldLocation) {
-		TileLocation tileLocation = worldLocation.toTileLocation(config.map, config.zoom);
+	public @Nullable String downloadTile(ExportConfig config, TileLocation tileLocation) {
 		File dest = getDestFile(Instant.now(), tileLocation);
-		String tilePath = getPath(config, worldLocation, tileLocation);
+		String tilePath = getPath(config, tileLocation);
 		return download(tilePath, dest) ? dest.getPath() : null;
 	}
 	
@@ -62,15 +67,21 @@ public class Downloader {
 	 * @param config the export configuration
 	 * @param from   the first tile corner
 	 * @param to     the second tile corner, diagonally opposing <code>from</code>
+	 * @return the amount of tiles downloaded
 	 */
-	public void downloadTiles(ExportConfig config, TileLocation from, TileLocation to) {
+	public int downloadTiles(ExportConfig config, TileLocation from, TileLocation to) {
+		int nDownloaded = 0;
 		Instant now = Instant.now();
 		
 		for (int x = Math.min(from.x, to.x); x < Math.max(from.x, to.x); x++) {
 			for (int y = Math.min(from.y, to.y); y < Math.max(from.y, to.y); y++) {
-				// TODO: make tile from x and y coordinates and download
+				TileLocation tile = new TileLocation(x, y);
+				File dest = getDestFile(now, tile);
+				if (download(getPath(config, tile), dest)) nDownloaded++;
 			}
 		}
+		
+		return nDownloaded;
 	}
 	
 	/**
@@ -121,21 +132,21 @@ public class Downloader {
 	
 	/**
 	 * Get the Dynmap path to the tile specified.
+	 * See <a href="https://github.com/webbukkit/dynmap/blob/f89777a0dd1ac9e17f595ef0361a030f53eff92a/DynmapCore/src/main/java/org/dynmap/storage/filetree/FileTreeMapStorage.java#L46-L53">
+	 * https://github.com/webbukkit/dynmap/blob/f89777a0dd1ac9e17f595ef0361a030f53eff92a/DynmapCore/src/main/java/org/dynmap/storage/filetree/FileTreeMapStorage.java#L46-L53</a>
 	 *
-	 * @param config        the export configuration
-	 * @param worldLocation the in-game coordinates
-	 * @param tile          the Dynmap tile coordinates
+	 * @param config the export configuration
+	 * @param tile   the Dynmap tile coordinates
 	 * @return the path to the Dynmap tile image at
 	 * <code>{world}/{map}/{regionX}_{regionZ}/{zoom}_{tileX}_{tileY}.png</code>
 	 */
-	private @NotNull String getPath(ExportConfig config, WorldLocation worldLocation, TileLocation tile) {
-		// TODO: decouple world coordinates from tile coordinates?
-		final int regionX = worldLocation.x / 16 / 32;
-		final int regionZ = worldLocation.z / 16 / 32;
-		final String zoomStr = (config.zoom > 0) ? Strings.repeat("z", config.zoom) + "_" : "";
+	private @NotNull String getPath(ExportConfig config, TileLocation tile) {
+		String zoomStr = (config.zoom > 0) ? Strings.repeat("z", config.zoom) + "_" : "";
 		
 		return String.format("tiles/%s/%s/%d_%d/%s%d_%d.png",
-				config.world.name, config.map.prefix, regionX, regionZ,
+				config.world.name,
+				config.map.prefix,
+				tile.x >> 5, tile.y >> 5,
 				zoomStr, tile.x, tile.y);
 	}
 	
