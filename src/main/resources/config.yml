@@ -1,3 +1,21 @@
 # DynmapExport config file
 
+# The port on which Dynmap is running
 dynmap-port: 8123
+
+# Automatically export in this interval. Format is a simplified ISO-8601, e.g. 1h
+# (deviations from ISO-8601: no prefix "P", no "T" separator, days not supported)
+# (uncomment to use)
+#schedule: 1m
+
+# A list of export configurations.
+exports:
+#  - world: world
+#    map: flat
+#    zoom: 0
+#    from:
+#      x: 0
+#      y: 0
+#    to:
+#      x: 2
+#      y: 2
