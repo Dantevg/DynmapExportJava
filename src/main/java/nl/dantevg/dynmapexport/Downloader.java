@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
-import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -134,7 +133,7 @@ public class Downloader {
 	 * The instant gets formatted in ISO 8601 basic format, truncated to seconds
 	 * (for example, <code>20220804T213215Z</code>).
 	 *
-	 * @param now  the current time
+	 * @param now      the current time
 	 * @param tilePath the path to the source tile
 	 * @return the file at location <code>plugins/DynmapExport/exports/{now}/{tileX}_{tileY}.png</code>
 	 */
