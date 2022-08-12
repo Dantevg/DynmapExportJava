@@ -10,6 +10,7 @@ import java.io.InputStream;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
@@ -52,8 +53,8 @@ public class Downloader {
 	 * @return the path to the downloaded file
 	 */
 	public @Nullable String downloadTile(ExportConfig config, TileLocation tileLocation) {
-		File dest = getDestFile(Instant.now(), tileLocation);
 		String tilePath = getPath(config, tileLocation);
+		File dest = getDestFile(Instant.now(), tilePath);
 		return download(tilePath, dest) ? dest.getPath() : null;
 	}
 	
@@ -75,8 +76,9 @@ public class Downloader {
 		for (int x = minX; x <= maxX; x += 1 << config.zoom) {
 			for (int y = minY; y <= maxY; y += 1 << config.zoom) {
 				TileLocation tile = new TileLocation(x, y);
-				File dest = getDestFile(now, tile);
-				if (download(getPath(config, tile), dest)) nDownloaded++;
+				String tilePath = getPath(config, tile);
+				File dest = getDestFile(now, tilePath);
+				if (download(tilePath, dest)) nDownloaded++;
 			}
 		}
 		
@@ -120,13 +122,11 @@ public class Downloader {
 	 * <code>{world}/{map}/{regionX}_{regionZ}/{zoom}_{tileX}_{tileY}.png</code>
 	 */
 	private @NotNull String getPath(ExportConfig config, TileLocation tile) {
-		String zoomStr = (config.zoom > 0) ? Strings.repeat("z", config.zoom) + "_" : "";
-		
 		return String.format("tiles/%s/%s/%d_%d/%s%d_%d.png",
 				config.world.name,
 				config.map.prefix,
 				tile.x >> 5, tile.y >> 5,
-				zoomStr, tile.x, tile.y);
+				getZoomString(config.zoom), tile.x, tile.y);
 	}
 	
 	/**
@@ -135,17 +135,21 @@ public class Downloader {
 	 * (for example, <code>20220804T213215Z</code>).
 	 *
 	 * @param now  the current time
-	 * @param tile the Dynmap tile coordinates
+	 * @param tilePath the path to the source tile
 	 * @return the file at location <code>plugins/DynmapExport/exports/{now}/{tileX}_{tileY}.png</code>
 	 */
-	private @NotNull File getDestFile(@NotNull Instant now, TileLocation tile) {
+	private @NotNull File getDestFile(@NotNull Instant now, String tilePath) {
 		// Convert extended format to basic format without separators (which are problematic in filenames)
 		// https://stackoverflow.com/a/39820917
 		String datetime = now.truncatedTo(ChronoUnit.SECONDS).toString()
 				.replace("-", "")
 				.replace(":", "");
 		File directory = new File(plugin.getDataFolder(), "exports/" + datetime);
-		return new File(directory, String.format("%d_%d.png", tile.x, tile.y));
+		return new File(directory, new File(tilePath).getName());
+	}
+	
+	private static String getZoomString(int zoom) {
+		return (zoom > 0) ? Strings.repeat("z", zoom) + "_" : "";
 	}
 	
 	private static int zoomedFloor(int value, int zoom) {
