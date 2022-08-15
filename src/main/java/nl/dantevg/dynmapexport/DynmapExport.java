@@ -64,6 +64,12 @@ public class DynmapExport extends JavaPlugin {
 		}
 	}
 	
+	public void export() {
+		for (ExportConfig exportConfig : exportConfigs) {
+			downloader.downloadTiles(exportConfig);
+		}
+	}
+	
 	/**
 	 * Download the world configuration from Dynmap, which is used to determine
 	 * the tile coordinates from world coordinates.
@@ -115,9 +121,7 @@ public class DynmapExport extends JavaPlugin {
 	private class ExportTask extends BukkitRunnable {
 		@Override
 		public void run() {
-			for (ExportConfig exportConfig : exportConfigs) {
-				downloader.downloadTiles(exportConfig);
-			}
+			export();
 		}
 		
 	}

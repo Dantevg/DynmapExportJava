@@ -13,6 +13,10 @@ import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 
 public class Downloader {
@@ -54,7 +58,11 @@ public class Downloader {
 	public @Nullable String downloadTile(ExportConfig config, TileLocation tileLocation) {
 		String tilePath = getPath(config, tileLocation);
 		File dest = getDestFile(Instant.now(), config, tileLocation);
-		return download(tilePath, dest) ? dest.getPath() : null;
+		if (plugin.exportCache.hasChanged(config, tileLocation.getTileGroupCoords())) {
+			return download(tilePath, dest) ? dest.getPath() : null;
+		} else {
+			return null;
+		}
 	}
 	
 	/**
@@ -66,22 +74,43 @@ public class Downloader {
 	public int downloadTiles(ExportConfig config) {
 		int nDownloaded = 0;
 		Instant now = Instant.now();
+		List<TileLocation> tiles = configToTileLocations(config);
 		
+		// Do not download if nothing changed
+		Set<TileGroupCoords> tileGroups = new HashSet<>();
+		for (TileLocation tile : tiles) tileGroups.add(tile.getTileGroupCoords());
+		if (!plugin.exportCache.anyChanged(config, tileGroups)) return 0;
+		
+		for (TileLocation tile : tiles) {
+			String tilePath = getPath(config, tile);
+			File dest = getDestFile(now, config, tile);
+			if (download(tilePath, dest)) nDownloaded++;
+		}
+		
+		return nDownloaded;
+	}
+	
+	/**
+	 * Get all tile locations from an export config.
+	 *
+	 * @param config the export config to get the tile locations of
+	 * @return a list of tiles that are within the range from the config
+	 */
+	private List<TileLocation> configToTileLocations(ExportConfig config) {
 		int minX = zoomedFloor(Math.min(config.from.x, config.to.x), config.zoom);
 		int maxX = zoomedCeil(Math.max(config.from.x, config.to.x), config.zoom);
 		int minY = zoomedFloor(Math.min(config.from.y, config.to.y), config.zoom);
 		int maxY = zoomedCeil(Math.max(config.from.y, config.to.y), config.zoom);
 		
+		List<TileLocation> tiles = new ArrayList<>();
+		
 		for (int x = minX; x <= maxX; x += 1 << config.zoom) {
 			for (int y = minY; y <= maxY; y += 1 << config.zoom) {
-				TileLocation tile = new TileLocation(x, y);
-				String tilePath = getPath(config, tile);
-				File dest = getDestFile(now, config, tile);
-				if (download(tilePath, dest)) nDownloaded++;
+				tiles.add(new TileLocation(x, y));
 			}
 		}
 		
-		return nDownloaded;
+		return tiles;
 	}
 	
 	/**
