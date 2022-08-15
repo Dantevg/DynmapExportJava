@@ -53,7 +53,7 @@ public class Downloader {
 	 */
 	public @Nullable String downloadTile(ExportConfig config, TileLocation tileLocation) {
 		String tilePath = getPath(config, tileLocation);
-		File dest = getDestFile(Instant.now(), tilePath);
+		File dest = getDestFile(Instant.now(), config, tileLocation);
 		return download(tilePath, dest) ? dest.getPath() : null;
 	}
 	
@@ -76,7 +76,7 @@ public class Downloader {
 			for (int y = minY; y <= maxY; y += 1 << config.zoom) {
 				TileLocation tile = new TileLocation(x, y);
 				String tilePath = getPath(config, tile);
-				File dest = getDestFile(now, tilePath);
+				File dest = getDestFile(now, config, tile);
 				if (download(tilePath, dest)) nDownloaded++;
 			}
 		}
@@ -92,10 +92,8 @@ public class Downloader {
 	 * @return whether the download succeeded
 	 */
 	private boolean download(String path, @NotNull File dest) {
-		int port = plugin.config.getInt("dynmap-port");
-		
 		try {
-			URL url = new URL(String.format("http://localhost:%d/%s", port, path));
+			URL url = new URL(String.format("http://localhost:%d/%s", plugin.dynmapPort, path));
 			InputStream inputStream = url.openStream();
 			dest.getParentFile().mkdirs(); // Make all directories on path to file
 			long bytesWritten = Files.copy(inputStream, dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -121,10 +119,10 @@ public class Downloader {
 	 * <code>{world}/{map}/{regionX}_{regionZ}/{zoom}_{tileX}_{tileY}.png</code>
 	 */
 	private @NotNull String getPath(ExportConfig config, TileLocation tile) {
-		return String.format("tiles/%s/%s/%d_%d/%s%d_%d.png",
+		return String.format("tiles/%s/%s/%s/%s%d_%d.png",
 				config.world.name,
 				config.map.prefix,
-				tile.x >> 5, tile.y >> 5,
+				tile.getTileGroupCoords(),
 				getZoomString(config.zoom), tile.x, tile.y);
 	}
 	
@@ -133,18 +131,23 @@ public class Downloader {
 	 * The instant gets formatted in ISO 8601 basic format, truncated to seconds
 	 * (for example, <code>20220804T213215Z</code>).
 	 *
-	 * @param now      the current time
-	 * @param tilePath the path to the source tile
-	 * @return the file at location <code>plugins/DynmapExport/exports/{now}/{tileX}_{tileY}.png</code>
+	 * @param now    the current time
+	 * @param config the export configuration
+	 * @param tile   the Dynmap tile coordinates
+	 * @return the file at location
+	 * <code>plugins/DynmapExport/exports/{world}/{map}/{now}/{zoom}_{tileX}_{tileY}.png</code>
 	 */
-	private @NotNull File getDestFile(@NotNull Instant now, String tilePath) {
+	private @NotNull File getDestFile(@NotNull Instant now, ExportConfig config, TileLocation tile) {
 		// Convert extended format to basic format without separators (which are problematic in filenames)
 		// https://stackoverflow.com/a/39820917
 		String datetime = now.truncatedTo(ChronoUnit.SECONDS).toString()
 				.replace("-", "")
 				.replace(":", "");
-		File directory = new File(plugin.getDataFolder(), "exports/" + datetime);
-		return new File(directory, new File(tilePath).getName());
+		return new File(plugin.getDataFolder(), String.format("exports/%s/%s/%s/%s%d_%d.png",
+				config.world.name,
+				config.map.prefix,
+				datetime,
+				getZoomString(config.zoom), tile.x, tile.y));
 	}
 	
 	private static String getZoomString(int zoom) {

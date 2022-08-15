@@ -1,99 +1,78 @@
 package nl.dantevg.dynmapexport;
 
-import org.bukkit.configuration.InvalidConfigurationException;
-import org.bukkit.configuration.file.YamlConfiguration;
+import com.google.common.io.CharStreams;
+import com.google.common.io.Files;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 
 public class ExportCache {
-	private static final String FILENAME = "last-export.yml";
-	
 	private final DynmapExport plugin;
-	private final File file;
-	private final Map<TileGroupCoords, Instant> lastExport = new HashMap<>();
 	
 	public ExportCache(DynmapExport plugin) {
 		this.plugin = plugin;
-		file = new File(plugin.getDataFolder(), FILENAME);
-		load();
 	}
 	
 	/**
-	 * Returns whether this tile group has been exported at least once before.
+	 * Check whether the tile has changed since the last hash.
 	 *
+	 * @param config          the config for the export
 	 * @param tileGroupCoords the tile group to check
-	 * @return whether the tile group at <code>tileGroupCoords</code> has been
-	 * exported before
+	 * @return whether the hash has changed since the last export of this hash
 	 */
-	public boolean isCached(TileGroupCoords tileGroupCoords) {
-		return lastExport.containsKey(tileGroupCoords);
+	public boolean hasChanged(ExportConfig config, TileGroupCoords tileGroupCoords) {
+		String cached = getCachedHash(config, tileGroupCoords);
+		String latest = getLatestHash(config, tileGroupCoords);
+		return cached == null || !cached.equals(latest);
 	}
 	
 	/**
-	 * Get the latest date/time at which this tile group was exported, or
-	 * <code>null</code> if it was never exported before.
+	 * Get the last stored hash.
 	 *
-	 * @param tileGroupCoords the tile group to check
-	 * @return the latest date/time at which the tile group at <code>tileGroupCoords</code>
-	 * was exported
+	 * @param config          the config for the export
+	 * @param tileGroupCoords the tile group to get the hash for
+	 * @return the last stored hash of the tile group
 	 */
-	public Instant getLastExport(TileGroupCoords tileGroupCoords) {
-		return lastExport.get(tileGroupCoords);
-	}
-	
-	/**
-	 * Set the time at which this tile group was last exported.
-	 *
-	 * @param tileGroupCoords the tile group to set the time for
-	 * @param instant         the time at which the tile group at <code>tileGroupCoords</code>
-	 *                        was exported
-	 */
-	public void setLastExport(TileGroupCoords tileGroupCoords, Instant instant) {
-		lastExport.put(tileGroupCoords, instant);
-	}
-	
-	/**
-	 * Load the latest export times from a file, if it exists yet.
-	 * @see ExportCache#FILENAME
-	 */
-	private void load() {
-		YamlConfiguration lastExportYaml = new YamlConfiguration();
+	private @Nullable String getCachedHash(ExportConfig config, TileGroupCoords tileGroupCoords) {
+		File file = new File(plugin.getDataFolder(), String.format("exports/%s/%s_%s.hash",
+				config.world.name,
+				config.map.prefix, tileGroupCoords));
 		try {
-			lastExportYaml.load(file);
-		} catch (FileNotFoundException e) {
-			// Ignore, the file did not exist yet but will be created on server close
-		} catch (IOException | InvalidConfigurationException e) {
-			plugin.logger.log(Level.WARNING, "Could not read " + FILENAME, e);
-			return;
-		}
-		
-		for (String tileGroupCoords : lastExportYaml.getKeys(false)) {
-			lastExport.put(
-					TileGroupCoords.parse(tileGroupCoords),
-					Instant.parse((String) lastExportYaml.get(tileGroupCoords)));
-		}
-	}
-	
-	/**
-	 * Save the latest export times to a file.
-	 * @see ExportCache#FILENAME
-	 */
-	public void save() {
-		YamlConfiguration lastExportYaml = new YamlConfiguration();
-		lastExport.forEach((tileGroupCoords, instant) ->
-				lastExportYaml.set(tileGroupCoords.toString(), instant.toString()));
-		
-		try {
-			lastExportYaml.save(file);
+			return Files.toString(file, StandardCharsets.UTF_8);
 		} catch (IOException e) {
-			plugin.logger.log(Level.WARNING, "Could not store " + FILENAME, e);
+			plugin.logger.log(Level.WARNING, "Could not read stored hash", e);
 		}
+		return null;
+	}
+	
+	/**
+	 * Get the newest hash from Dynmap.
+	 *
+	 * @param config          the config for the export
+	 * @param tileGroupCoords the tile group to get the hash for
+	 * @return the newest hash of the tile group
+	 */
+	private @Nullable String getLatestHash(ExportConfig config, TileGroupCoords tileGroupCoords) {
+		try {
+			URL url = new URL(String.format("http://localhost:%d/tiles/%s/%s_%s.hash",
+					plugin.dynmapPort,
+					config.world.name,
+					config.map.prefix, tileGroupCoords));
+			InputStream inputStream = url.openStream();
+			return CharStreams.toString(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+		} catch (MalformedURLException e) {
+			plugin.logger.log(Level.SEVERE, e.getMessage());
+		} catch (IOException e) {
+			plugin.logger.log(Level.WARNING, "Could not download hash", e);
+		}
+		return null;
 	}
 	
 }

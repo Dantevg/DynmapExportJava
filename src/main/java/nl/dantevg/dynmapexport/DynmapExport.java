@@ -25,8 +25,11 @@ public class DynmapExport extends JavaPlugin {
 	Logger logger;
 	
 	protected DynmapWebAPI.Configuration worldConfiguration;
+	protected ExportCache exportCache;
 	protected Downloader downloader;
 	protected List<ExportConfig> exportConfigs;
+	
+	protected int dynmapPort;
 	
 	@Override
 	public void onEnable() {
@@ -35,6 +38,8 @@ public class DynmapExport extends JavaPlugin {
 		// Config
 		config = getConfig();
 		saveDefaultConfig();
+		
+		dynmapPort = config.getInt("dynmap-port");
 		
 		worldConfiguration = getDynmapConfiguration();
 		
@@ -48,6 +53,7 @@ public class DynmapExport extends JavaPlugin {
 		getCommand("dynmapexport").setExecutor(command);
 		getCommand("dynmapexport").setTabCompleter(command);
 		
+		exportCache = new ExportCache(this);
 		downloader = new Downloader(this);
 		
 		// Scheduler
