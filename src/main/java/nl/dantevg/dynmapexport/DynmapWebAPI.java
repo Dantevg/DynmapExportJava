@@ -1,6 +1,5 @@
 package nl.dantevg.dynmapexport;
 
-import org.bukkit.util.Vector;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
