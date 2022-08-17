@@ -26,6 +26,7 @@ public class DynmapExport extends JavaPlugin {
 	
 	protected DynmapWebAPI.Configuration worldConfiguration;
 	protected ExportCache exportCache;
+	protected ExportScheduler exportScheduler;
 	protected Downloader downloader;
 	protected List<ExportConfig> exportConfigs;
 	
@@ -34,6 +35,8 @@ public class DynmapExport extends JavaPlugin {
 	@Override
 	public void onEnable() {
 		logger = getLogger();
+		
+		getDataFolder().mkdirs(); // Create plugin folder
 		
 		// Config
 		config = getConfig();
@@ -54,14 +57,8 @@ public class DynmapExport extends JavaPlugin {
 		getCommand("dynmapexport").setTabCompleter(command);
 		
 		exportCache = new ExportCache(this);
+		exportScheduler = new ExportScheduler(this);
 		downloader = new Downloader(this);
-		
-		// Scheduler
-		if (config.contains("schedule")) {
-			String schedule = config.getString("schedule");
-			Duration duration = Duration.parse("PT" + schedule);
-			startScheduledTask(duration);
-		}
 	}
 	
 	public void export() {
@@ -112,18 +109,6 @@ public class DynmapExport extends JavaPlugin {
 		}
 		
 		return new ExportConfig(world, map, zoom, from, to);
-	}
-	
-	private void startScheduledTask(Duration duration) {
-		new ExportTask().runTaskTimerAsynchronously(this, 0, duration.getSeconds() * 20);
-	}
-	
-	private class ExportTask extends BukkitRunnable {
-		@Override
-		public void run() {
-			export();
-		}
-		
 	}
 	
 }
