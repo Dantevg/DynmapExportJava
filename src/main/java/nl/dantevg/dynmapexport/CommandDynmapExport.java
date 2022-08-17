@@ -18,10 +18,12 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 		if (args.length == 0) {
 			// Export all from config.yml
+			int nSkipped = 0;
 			for (ExportConfig exportConfig : dynmapExport.exportConfigs) {
-				int nTiles = dynmapExport.downloader.downloadTiles(exportConfig);
-				sender.sendMessage("Downloaded " + nTiles + " tiles");
+				if (dynmapExport.downloader.downloadTiles(exportConfig) == -1) nSkipped++;
 			}
+			sender.sendMessage(String.format("Exported %d configs, skipped %d",
+					dynmapExport.exportConfigs.size() - nSkipped, nSkipped));
 			return true;
 		} else if (args.length == 5) {
 			// Export single

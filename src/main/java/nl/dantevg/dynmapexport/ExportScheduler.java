@@ -1,6 +1,7 @@
 package nl.dantevg.dynmapexport;
 
 import com.google.common.io.Files;
+import org.apache.commons.lang.time.DurationFormatUtils;
 import org.bukkit.scheduler.BukkitRunnable;
 
 import java.io.File;
@@ -48,10 +49,16 @@ public class ExportScheduler {
 	
 	private void startScheduledTask(Duration duration) {
 		Duration delay = Duration.between(Instant.now(), lastExport.plus(duration));
+		if (delay.isNegative()) delay = Duration.ZERO;
+		
 		new ExportTask().runTaskTimerAsynchronously(
 				plugin,
-				Math.max(0, delay.getSeconds() * 20),
+				delay.getSeconds() * 20,
 				duration.getSeconds() * 20);
+		
+		String durationStr = DurationFormatUtils.formatDurationWords(duration.toMillis(), true, true);
+		String delayStr = DurationFormatUtils.formatDurationWords(delay.toMillis(), true, true);
+		plugin.logger.log(Level.INFO, "Scheduled export every " + durationStr + " starts in " + delayStr);
 	}
 	
 	private class ExportTask extends BukkitRunnable {

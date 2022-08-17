@@ -69,7 +69,7 @@ public class Downloader {
 	 * Download multiple tiles in the rectangle between <code>from</code> and <code>to</code> (inclusive)
 	 *
 	 * @param config the export configuration
-	 * @return the amount of tiles downloaded
+	 * @return the amount of tiles downloaded, or -1 if nothing changed in the Dynmap
 	 */
 	public int downloadTiles(ExportConfig config) {
 		int nDownloaded = 0;
@@ -79,7 +79,7 @@ public class Downloader {
 		// Do not download if nothing changed
 		Set<TileGroupCoords> tileGroups = new HashSet<>();
 		for (TileLocation tile : tiles) tileGroups.add(tile.getTileGroupCoords());
-		if (!plugin.exportCache.anyChanged(config, tileGroups)) return 0;
+		if (!plugin.exportCache.anyChanged(config, tileGroups)) return -1;
 		
 		for (TileLocation tile : tiles) {
 			String tilePath = getPath(config, tile);

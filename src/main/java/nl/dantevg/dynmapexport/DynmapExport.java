@@ -3,14 +3,12 @@ package nl.dantevg.dynmapexport;
 import com.google.gson.Gson;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -62,9 +60,12 @@ public class DynmapExport extends JavaPlugin {
 	}
 	
 	public void export() {
+		int nSkipped = 0;
 		for (ExportConfig exportConfig : exportConfigs) {
-			downloader.downloadTiles(exportConfig);
+			if (downloader.downloadTiles(exportConfig) == -1) nSkipped++;
 		}
+		logger.log(Level.INFO, String.format("Exported %d configs, skipped %d",
+				exportConfigs.size() - nSkipped, nSkipped));
 	}
 	
 	/**
