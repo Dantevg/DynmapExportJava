@@ -9,7 +9,7 @@ softdepend: [Dynmap]
 commands:
   dynmapexport:
     description: DynmapExport command
-    usage: "Usage:\n/dynmapexport\n/dynmapexport <world> <map> <x> <z> <zoom>"
+    usage: "Usage:\n/dynmapexport now\n/dynmapexport export <world> <map> <x> <z> <zoom>"
     permission: dynmapexport.*
 permissions:
   dynmapexport.*:
