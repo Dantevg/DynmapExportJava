@@ -32,11 +32,17 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 			return true;
 		} else if (args.length == 6 && args[0].equals("export")) {
 			// Export single
-			String world = args[0];
-			String map = args[1];
-			int x = Integer.parseInt(args[2]);
-			int z = Integer.parseInt(args[3]);
-			int zoom = Integer.parseInt(args[4]);
+			String world = args[1];
+			String map = args[2];
+			int x, z, zoom;
+			try {
+				x = Integer.parseInt(args[3]);
+				z = Integer.parseInt(args[4]);
+				zoom = Integer.parseInt(args[5]);
+			} catch (NumberFormatException e) {
+				sender.sendMessage("Invalid number");
+				return false;
+			}
 			String path = plugin.downloader.downloadTile(world, map, x, z, zoom);
 			if (path != null) {
 				sender.sendMessage("Saved tile at " + path);
