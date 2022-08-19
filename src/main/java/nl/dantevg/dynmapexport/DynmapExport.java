@@ -1,6 +1,7 @@
 package nl.dantevg.dynmapexport;
 
 import com.google.gson.Gson;
+import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.Nullable;
@@ -67,6 +68,16 @@ public class DynmapExport extends JavaPlugin {
 		}
 		logger.log(Level.INFO, String.format("Exported %d configs, skipped %d",
 				exportConfigs.size() - nSkipped, nSkipped));
+	}
+	
+	public void reload() {
+		logger.log(Level.INFO, "Reload: disabling plugin");
+		setEnabled(false);
+		Bukkit.getScheduler().cancelTasks(this);
+		logger.log(Level.INFO, "Reload: re-enabling plugin");
+		reloadConfig();
+		setEnabled(true);
+		logger.log(Level.INFO, "Reload complete");
 	}
 	
 	/**

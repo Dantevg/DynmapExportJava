@@ -27,6 +27,9 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 			sender.sendMessage(String.format("Exported %d configs, skipped %d",
 					plugin.exportConfigs.size() - nSkipped, nSkipped));
 			return true;
+		} else if (args.length == 1 && args[0].equals("reload")) {
+			plugin.reload();
+			return true;
 		} else if (args.length == 6 && args[0].equals("export")) {
 			// Export single
 			String world = args[0];
