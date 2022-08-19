@@ -5,7 +5,7 @@ api-version: 1.13
 description: Automatically export dynmap tiles periodically
 author: RedPolygon
 website: dantevg.nl/mods-plugins/DynmapExport
-softdepend: [Dynmap]
+softdepend: [dynmap]
 commands:
   dynmapexport:
     description: DynmapExport command
