@@ -122,7 +122,7 @@ public class Downloader {
 			InputStream inputStream = url.openStream();
 			dest.getParentFile().mkdirs(); // Make all directories on path to file
 			long bytesWritten = Files.copy(inputStream, dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
-			plugin.logger.log(Level.INFO, "Downloaded tile " + path);
+			plugin.logger.log(Level.CONFIG, "Downloaded tile " + path);
 			if (bytesWritten == 0) plugin.logger.log(Level.WARNING, "Tile was 0 bytes!");
 			return bytesWritten > 0;
 		} catch (MalformedURLException e) {
