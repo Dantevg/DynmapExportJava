@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeParseException;
 import java.util.logging.Level;
 
 public class ExportScheduler {
@@ -25,7 +26,13 @@ public class ExportScheduler {
 		
 		if (plugin.config.contains("schedule")) {
 			String schedule = plugin.config.getString("schedule");
-			Duration duration = Duration.parse("PT" + schedule);
+			Duration duration;
+			try {
+				duration = Duration.parse("PT" + schedule);
+			} catch (DateTimeParseException e) {
+				plugin.logger.log(Level.WARNING, "Invalid schedule format (only seconds, minutes, hours allowed!)");
+				return;
+			}
 			startScheduledTask(duration);
 		}
 	}
