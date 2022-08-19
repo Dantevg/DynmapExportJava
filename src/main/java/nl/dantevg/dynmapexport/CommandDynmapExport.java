@@ -58,12 +58,12 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 	public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
 		if (args.length == 1) {
 			return Arrays.asList("now", "export");
-		} else if (args.length == 2 && args[1].equals("export")) {
+		} else if (args.length == 2 && args[0].equals("export")) {
 			// Suggest world
 			return plugin.worldConfiguration.worlds.stream()
 					.map(world -> world.name)
 					.collect(Collectors.toList());
-		} else if (args.length == 3 && args[1].equals("export")) {
+		} else if (args.length == 3 && args[0].equals("export")) {
 			// Suggest map
 			DynmapWebAPI.World world = plugin.worldConfiguration.getWorldByName(args[0]);
 			if (world != null) {
