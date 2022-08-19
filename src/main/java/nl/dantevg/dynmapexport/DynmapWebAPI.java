@@ -14,6 +14,13 @@ public class DynmapWebAPI {
 					.findAny()
 					.orElse(null);
 		}
+		
+		@Override
+		public String toString() {
+			return "Configuration{" +
+					"worlds=" + worlds +
+					'}';
+		}
 	}
 	
 	public static class World {
@@ -26,6 +33,14 @@ public class DynmapWebAPI {
 					.findAny()
 					.orElse(null);
 		}
+		
+		@Override
+		public String toString() {
+			return "World{" +
+					"name='" + name + '\'' +
+					", maps=" + maps +
+					'}';
+		}
 	}
 	
 	public static class Map {
@@ -33,6 +48,13 @@ public class DynmapWebAPI {
 		public String prefix;
 		public int scale;
 		public double[] worldtomap;
+		
+		@Override
+		public String toString() {
+			return "Map{" +
+					"name='" + name + '\'' +
+					'}';
+		}
 	}
 	
 }

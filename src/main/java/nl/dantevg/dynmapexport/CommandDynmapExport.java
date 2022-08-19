@@ -5,8 +5,11 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class CommandDynmapExport implements CommandExecutor, TabCompleter {
@@ -29,6 +32,9 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 			return true;
 		} else if (args.length == 1 && args[0].equals("reload")) {
 			plugin.reload();
+			return true;
+		} else if (args.length == 1 && args[0].equals("debug")) {
+			sender.sendMessage(plugin.debug());
 			return true;
 		} else if (args.length == 6 && args[0].equals("export")) {
 			// Export single
@@ -57,7 +63,7 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 	@Override
 	public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
 		if (args.length == 1) {
-			return Arrays.asList("now", "export");
+			return Arrays.asList("now", "export", "reload", "debug");
 		} else if (args.length == 2 && args[0].equals("export")) {
 			// Suggest world
 			return plugin.worldConfiguration.worlds.stream()
@@ -65,14 +71,14 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 					.collect(Collectors.toList());
 		} else if (args.length == 3 && args[0].equals("export")) {
 			// Suggest map
-			DynmapWebAPI.World world = plugin.worldConfiguration.getWorldByName(args[0]);
+			DynmapWebAPI.World world = plugin.worldConfiguration.getWorldByName(args[1]);
 			if (world != null) {
 				return world.maps.stream().map(map -> map.name).collect(Collectors.toList());
 			} else {
-				return null;
+				return Collections.emptyList();
 			}
 		}
-		return null;
+		return Collections.emptyList();
 	}
 	
 }

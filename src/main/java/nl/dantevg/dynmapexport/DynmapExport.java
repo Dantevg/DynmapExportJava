@@ -126,4 +126,8 @@ public class DynmapExport extends JavaPlugin {
 		return new ExportConfig(world, map, zoom, from, to);
 	}
 	
+	protected String debug() {
+		return "Dynmap world configuration:\n" + worldConfiguration.toString();
+	}
+	
 }
