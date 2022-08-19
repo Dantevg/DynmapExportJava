@@ -5,11 +5,9 @@ import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.command.TabCompleter;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class CommandDynmapExport implements CommandExecutor, TabCompleter {
@@ -49,7 +47,14 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 				sender.sendMessage("Invalid number");
 				return false;
 			}
-			String path = plugin.downloader.downloadTile(world, map, x, z, zoom);
+			
+			String path;
+			try {
+				path = plugin.downloader.downloadTile(world, map, x, z, zoom);
+			} catch (IllegalArgumentException e) {
+				sender.sendMessage("Could not save tile: " + e.getMessage());
+				return false;
+			}
 			if (path != null) {
 				sender.sendMessage("Saved tile at " + path);
 			} else {

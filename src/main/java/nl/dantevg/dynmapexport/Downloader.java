@@ -58,11 +58,7 @@ public class Downloader {
 	public @Nullable String downloadTile(ExportConfig config, TileLocation tileLocation) {
 		String tilePath = getPath(config, tileLocation);
 		File dest = getDestFile(Instant.now(), config, tileLocation);
-		if (plugin.exportCache.hasChanged(config, tileLocation.getTileGroupCoords())) {
-			return download(tilePath, dest) ? dest.getPath() : null;
-		} else {
-			return null;
-		}
+		return download(tilePath, dest) ? dest.getPath() : null;
 	}
 	
 	/**
