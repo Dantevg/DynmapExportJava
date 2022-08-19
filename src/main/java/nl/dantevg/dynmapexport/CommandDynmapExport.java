@@ -1,9 +1,6 @@
 package nl.dantevg.dynmapexport;
 
-import org.bukkit.command.Command;
-import org.bukkit.command.CommandExecutor;
-import org.bukkit.command.CommandSender;
-import org.bukkit.command.TabCompleter;
+import org.bukkit.command.*;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -30,6 +27,7 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 			return true;
 		} else if (args.length == 1 && args[0].equals("reload")) {
 			plugin.reload();
+			if (!(sender instanceof ConsoleCommandSender)) sender.sendMessage("Reload complete");
 			return true;
 		} else if (args.length == 1 && args[0].equals("debug")) {
 			sender.sendMessage(plugin.debug());
