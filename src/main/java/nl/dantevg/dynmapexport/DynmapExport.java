@@ -7,6 +7,7 @@ import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
@@ -82,8 +83,10 @@ public class DynmapExport extends JavaPlugin {
 			return new Gson().fromJson(reader, DynmapWebAPI.Configuration.class);
 		} catch (MalformedURLException e) {
 			logger.log(Level.SEVERE, e.getMessage());
+		} catch (ConnectException e) {
+			logger.log(Level.WARNING, "Could not connect to Dynmap, check the port in config.yml");
 		} catch (IOException e) {
-			logger.log(Level.SEVERE, "Could not download dynmap worlds configuration", e);
+			logger.log(Level.SEVERE, "Could not download Dynmap worlds configuration", e);
 		}
 		return null;
 	}
