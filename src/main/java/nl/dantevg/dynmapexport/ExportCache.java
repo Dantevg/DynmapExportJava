@@ -1,5 +1,6 @@
 package nl.dantevg.dynmapexport;
 
+import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
 import org.jetbrains.annotations.Nullable;
@@ -11,6 +12,7 @@ import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.Set;
 import java.util.logging.Level;
 
@@ -40,9 +42,9 @@ public class ExportCache {
 	 * @return whether the hash has changed since the last export of this tile group
 	 */
 	public boolean hasChanged(ExportConfig config, TileGroupCoords tileGroupCoords) {
-		String cached = getCachedHash(config, tileGroupCoords);
-		String latest = getLatestHash(config, tileGroupCoords);
-		return cached == null || !cached.equals(latest);
+		byte[] cached = getCachedHash(config, tileGroupCoords);
+		byte[] latest = getLatestHash(config, tileGroupCoords);
+		return cached == null || !Arrays.equals(cached, latest);
 	}
 	
 	/**
@@ -52,11 +54,11 @@ public class ExportCache {
 	 * @param tileGroupCoords the tile group to get the hash for
 	 * @return the last stored hash of the tile group
 	 */
-	private @Nullable String getCachedHash(ExportConfig config, TileGroupCoords tileGroupCoords) {
+	private @Nullable byte[] getCachedHash(ExportConfig config, TileGroupCoords tileGroupCoords) {
 		File file = getCachedHashFile(config, tileGroupCoords);
 		if (!file.exists()) return null;
 		try {
-			return Files.toString(file, StandardCharsets.UTF_8);
+			return Files.toByteArray(file);
 		} catch (IOException e) {
 			plugin.logger.log(Level.WARNING, "Could not read stored hash", e);
 		}
@@ -70,14 +72,14 @@ public class ExportCache {
 	 * @param tileGroupCoords the tile group to get the hash for
 	 * @return the newest hash of the tile group
 	 */
-	private @Nullable String getLatestHash(ExportConfig config, TileGroupCoords tileGroupCoords) {
+	private @Nullable byte[] getLatestHash(ExportConfig config, TileGroupCoords tileGroupCoords) {
 		try {
 			URL url = new URL(String.format("http://localhost:%d/tiles/%s/%s_%s.hash",
 					plugin.dynmapPort,
 					config.world.name,
 					config.map.prefix, tileGroupCoords));
 			InputStream inputStream = url.openStream();
-			String hash = CharStreams.toString(new InputStreamReader(inputStream, StandardCharsets.UTF_8));
+			byte[] hash = ByteStreams.toByteArray(inputStream);
 			saveHash(config, tileGroupCoords, hash);
 			return hash;
 		} catch (MalformedURLException e) {
@@ -95,11 +97,11 @@ public class ExportCache {
 	 * @param tileGroupCoords the tile group this hash is for
 	 * @param hash            the hash of the tile group
 	 */
-	private void saveHash(ExportConfig config, TileGroupCoords tileGroupCoords, String hash) {
+	private void saveHash(ExportConfig config, TileGroupCoords tileGroupCoords, byte[] hash) {
 		File file = getCachedHashFile(config, tileGroupCoords);
 		file.getParentFile().mkdirs();
 		try {
-			Files.write(hash, file, StandardCharsets.UTF_8);
+			Files.write(hash, file);
 		} catch (IOException e) {
 			plugin.logger.log(Level.WARNING, "Could not save hash", e);
 		}
