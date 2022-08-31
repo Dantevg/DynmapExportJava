@@ -1,6 +1,5 @@
 package nl.dantevg.dynmapexport;
 
-import com.google.common.base.Strings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,7 +11,6 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -55,9 +53,9 @@ public class Downloader {
 	 * @param tileLocation the tile coordinates
 	 * @return the path to the downloaded file
 	 */
-	public @Nullable String downloadTile(ExportConfig config, TileLocation tileLocation) {
-		String tilePath = getPath(config, tileLocation);
-		File dest = getDestFile(Instant.now(), config, tileLocation);
+	public @Nullable String downloadTile(@NotNull ExportConfig config, @NotNull TileLocation tileLocation) {
+		String tilePath = Paths.getDynmapTilePath(config, tileLocation);
+		File dest = Paths.getLocalTileFile(plugin, config, Instant.now(), tileLocation);
 		return download(tilePath, dest) ? dest.getPath() : null;
 	}
 	
@@ -67,20 +65,31 @@ public class Downloader {
 	 * @param config the export configuration
 	 * @return the amount of tiles downloaded, or -1 if nothing changed in the Dynmap
 	 */
-	public int downloadTiles(ExportConfig config) {
+	public int downloadTiles(@NotNull ExportConfig config) {
 		int nDownloaded = 0;
 		Instant now = Instant.now();
+		Instant cached = plugin.imageTresholdCache.getCachedInstant(config);
 		List<TileLocation> tiles = configToTileLocations(config);
 		
-		// Do not download if nothing changed
-		Set<TileGroupCoords> tileGroups = new HashSet<>();
-		for (TileLocation tile : tiles) tileGroups.add(tile.getTileGroupCoords());
-		if (!plugin.exportCache.anyChanged(config, tileGroups)) return -1;
-		
+		Set<File> downloadedFiles = new HashSet<>();
 		for (TileLocation tile : tiles) {
-			String tilePath = getPath(config, tile);
-			File dest = getDestFile(now, config, tile);
+			String tilePath = Paths.getDynmapTilePath(config, tile);
+			File dest = Paths.getLocalTileFile(plugin, config, now, tile);
+			downloadedFiles.add(dest);
 			if (download(tilePath, dest)) nDownloaded++;
+		}
+		
+		// Not enough changes, remove tile files and directory again
+		if (downloadedFiles.size() > 0
+				&& !plugin.imageTresholdCache.anyChangedSince(cached, config, downloadedFiles)) {
+			File dir = downloadedFiles.stream().findAny().get().getParentFile();
+			// Delete downloaded tile files
+			for (File file : downloadedFiles) {
+				file.delete();
+			}
+			// Delete parent directory
+			dir.delete();
+			return -1;
 		}
 		
 		return nDownloaded;
@@ -92,7 +101,7 @@ public class Downloader {
 	 * @param config the export config to get the tile locations of
 	 * @return a list of tiles that are within the range from the config
 	 */
-	private List<TileLocation> configToTileLocations(ExportConfig config) {
+	private @NotNull List<TileLocation> configToTileLocations(@NotNull ExportConfig config) {
 		int minX = zoomedFloor(Math.min(config.from.x, config.to.x), config.zoom);
 		int maxX = zoomedCeil(Math.max(config.from.x, config.to.x), config.zoom);
 		int minY = zoomedFloor(Math.min(config.from.y, config.to.y), config.zoom);
@@ -118,7 +127,7 @@ public class Downloader {
 	 */
 	private boolean download(String path, @NotNull File dest) {
 		try {
-			URL url = new URL(String.format("http://localhost:%d/%s", plugin.dynmapPort, path));
+			URL url = new URL(String.format("http://%s/%s", plugin.dynmapHost, path));
 			InputStream inputStream = url.openStream();
 			dest.getParentFile().mkdirs(); // Make all directories on path to file
 			long bytesWritten = Files.copy(inputStream, dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -131,52 +140,6 @@ public class Downloader {
 			plugin.logger.log(Level.SEVERE, "Could not download tile", e);
 		}
 		return false;
-	}
-	
-	/**
-	 * Get the Dynmap path to the tile specified.
-	 * See <a href="https://github.com/webbukkit/dynmap/blob/f89777a0dd1ac9e17f595ef0361a030f53eff92a/DynmapCore/src/main/java/org/dynmap/storage/filetree/FileTreeMapStorage.java#L46-L53">
-	 * https://github.com/webbukkit/dynmap/blob/f89777a0dd1ac9e17f595ef0361a030f53eff92a/DynmapCore/src/main/java/org/dynmap/storage/filetree/FileTreeMapStorage.java#L46-L53</a>
-	 *
-	 * @param config the export configuration
-	 * @param tile   the Dynmap tile coordinates
-	 * @return the path to the Dynmap tile image at
-	 * <code>{world}/{map}/{regionX}_{regionZ}/{zoom}_{tileX}_{tileY}.png</code>
-	 */
-	private @NotNull String getPath(ExportConfig config, TileLocation tile) {
-		return String.format("tiles/%s/%s/%s/%s%d_%d.png",
-				config.world.name,
-				config.map.prefix,
-				tile.getTileGroupCoords(),
-				getZoomString(config.zoom), tile.x, tile.y);
-	}
-	
-	/**
-	 * Get the file where the image at the given location is to be stored.
-	 * The instant gets formatted in ISO 8601 basic format, truncated to seconds
-	 * (for example, <code>20220804T213215Z</code>).
-	 *
-	 * @param now    the current time
-	 * @param config the export configuration
-	 * @param tile   the Dynmap tile coordinates
-	 * @return the file at location
-	 * <code>plugins/DynmapExport/exports/{world}/{map}/{now}/{zoom}_{tileX}_{tileY}.png</code>
-	 */
-	private @NotNull File getDestFile(@NotNull Instant now, ExportConfig config, TileLocation tile) {
-		// Convert extended format to basic format without separators (which are problematic in filenames)
-		// https://stackoverflow.com/a/39820917
-		String datetime = now.truncatedTo(ChronoUnit.SECONDS).toString()
-				.replace("-", "")
-				.replace(":", "");
-		return new File(plugin.getDataFolder(), String.format("exports/%s/%s/%s/%s%d_%d.png",
-				config.world.name,
-				config.map.prefix,
-				datetime,
-				getZoomString(config.zoom), tile.x, tile.y));
-	}
-	
-	private static String getZoomString(int zoom) {
-		return (zoom > 0) ? Strings.repeat("z", zoom) + "_" : "";
 	}
 	
 	private static int zoomedFloor(int value, int zoom) {

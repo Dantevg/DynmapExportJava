@@ -1,5 +1,7 @@
 package nl.dantevg.dynmapexport;
 
+import org.jetbrains.annotations.NotNull;
+
 public class TileGroupCoords {
 	public static final String SEPARATOR = "_";
 	
@@ -11,11 +13,11 @@ public class TileGroupCoords {
 	}
 	
 	@Override
-	public String toString() {
+	public @NotNull String toString() {
 		return this.x + SEPARATOR + this.y;
 	}
 	
-	public static TileGroupCoords parse(String str) {
+	public static @NotNull TileGroupCoords parse(@NotNull String str) {
 		int separator = str.indexOf(SEPARATOR);
 		int x = Integer.parseInt(str.substring(0, separator - 1));
 		int y = Integer.parseInt(str.substring(separator + 1));

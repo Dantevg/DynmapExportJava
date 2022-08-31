@@ -1,6 +1,7 @@
 package nl.dantevg.dynmapexport;
 
 import org.bukkit.command.*;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,7 +16,7 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 	}
 	
 	@Override
-	public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
+	public boolean onCommand(@NotNull CommandSender sender, Command command, String label, String @NotNull [] args) {
 		if (args.length == 1 && args[0].equals("now")) {
 			// Export all from config.yml
 			int nSkipped = 0;
@@ -64,7 +65,7 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 	}
 	
 	@Override
-	public List<String> onTabComplete(CommandSender sender, Command command, String label, String[] args) {
+	public List<String> onTabComplete(CommandSender sender, Command command, String label, String @NotNull [] args) {
 		if (args.length == 1) {
 			return Arrays.asList("now", "export", "reload", "debug");
 		} else if (args.length == 2 && args[0].equals("export")) {

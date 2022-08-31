@@ -1,5 +1,7 @@
 package nl.dantevg.dynmapexport;
 
+import org.jetbrains.annotations.NotNull;
+
 public class WorldLocation {
 	public static final int SCALE_FACTOR = 128;
 	
@@ -11,7 +13,7 @@ public class WorldLocation {
 		this.z = z;
 	}
 	
-	public TileLocation toTileLocation(DynmapWebAPI.Map map, int zoom) {
+	public @NotNull TileLocation toTileLocation(DynmapWebAPI.@NotNull Map map, int zoom) {
 		double unscaledX = (int) map.worldtomap[0] * x
 				+ (int) map.worldtomap[1] * y
 				+ (int) map.worldtomap[2] * z;
