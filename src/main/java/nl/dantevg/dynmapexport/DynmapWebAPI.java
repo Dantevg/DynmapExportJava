@@ -1,5 +1,6 @@
 package nl.dantevg.dynmapexport;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class DynmapWebAPI {
 		}
 		
 		@Override
-		public String toString() {
+		public @NotNull String toString() {
 			return "Configuration{" +
 					"worlds=" + worlds +
 					'}';
@@ -35,7 +36,7 @@ public class DynmapWebAPI {
 		}
 		
 		@Override
-		public String toString() {
+		public @NotNull String toString() {
 			return "World{" +
 					"name='" + name + '\'' +
 					", maps=" + maps +
@@ -50,7 +51,7 @@ public class DynmapWebAPI {
 		public double[] worldtomap;
 		
 		@Override
-		public String toString() {
+		public @NotNull String toString() {
 			return "Map{" +
 					"name='" + name + '\'' +
 					'}';

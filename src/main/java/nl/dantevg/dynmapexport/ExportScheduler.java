@@ -3,6 +3,7 @@ package nl.dantevg.dynmapexport;
 import com.google.common.io.Files;
 import org.apache.commons.lang.time.DurationFormatUtils;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -15,11 +16,11 @@ import java.util.logging.Level;
 public class ExportScheduler {
 	private static final String FILENAME = "last-export.txt";
 	
-	private final DynmapExport plugin;
-	private final File lastExportFile;
+	private final @NotNull DynmapExport plugin;
+	private final @NotNull File lastExportFile;
 	private Instant lastExport;
 	
-	public ExportScheduler(DynmapExport plugin) {
+	public ExportScheduler(@NotNull DynmapExport plugin) {
 		this.plugin = plugin;
 		lastExportFile = new File(plugin.getDataFolder(), FILENAME);
 		loadLastExport();
@@ -54,7 +55,7 @@ public class ExportScheduler {
 		}
 	}
 	
-	private void startScheduledTask(Duration duration) {
+	private void startScheduledTask(@NotNull Duration duration) {
 		Duration delay = Duration.between(Instant.now(), lastExport.plus(duration));
 		if (delay.isNegative()) delay = Duration.ZERO;
 		

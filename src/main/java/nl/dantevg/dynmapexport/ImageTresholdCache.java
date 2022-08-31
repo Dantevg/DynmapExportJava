@@ -1,5 +1,8 @@
 package nl.dantevg.dynmapexport;
 
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -18,14 +21,14 @@ public class ImageTresholdCache {
 		this.plugin = plugin;
 	}
 	
-	public boolean anyChangedSince(Instant since, ExportConfig config, Set<File> files) {
+	public boolean anyChangedSince(Instant since, @NotNull ExportConfig config, @NotNull Set<File> files) {
 		return files.stream().anyMatch(file -> hasChangedSince(since, config, file));
 	}
 	
-	public Instant getCachedInstant(ExportConfig config) {
-		File mapDir = getMapDir(config);
+	public @Nullable Instant getCachedInstant(@NotNull ExportConfig config) {
+		File mapDir = Paths.getLocalMapDir(plugin, config);
 		if (!mapDir.isDirectory()) return null;
-		DateTimeFormatter formatter = plugin.downloader.getInstantFormat();
+		DateTimeFormatter formatter = Paths.getInstantFormat();
 		return Arrays.stream(mapDir.listFiles())
 				.map(File::getName) // file -> filename
 				.map(formatter::parse).map(Instant::from) // filename -> instant
@@ -34,7 +37,7 @@ public class ImageTresholdCache {
 				.orElse(null);
 	}
 	
-	private boolean hasChangedSince(Instant since, ExportConfig config, File file) {
+	private boolean hasChangedSince(@Nullable Instant since, @NotNull ExportConfig config, @NotNull File file) {
 		if (since == null) return true;
 		
 		BufferedImage image;
@@ -45,11 +48,7 @@ public class ImageTresholdCache {
 			return true;
 		}
 		
-		File cachedImageFile = new File(
-				new File(
-						getMapDir(config),
-						plugin.downloader.getInstantFormat().format(since)),
-				file.getName());
+		File cachedImageFile = new File(Paths.getLocalExportDir(plugin, config, since), file.getName());
 		if (!cachedImageFile.exists()) return true;
 		
 		BufferedImage from;
@@ -64,17 +63,16 @@ public class ImageTresholdCache {
 		return fraction >= treshold;
 	}
 	
-	private double getFractionPixelsChanged(BufferedImage from, BufferedImage to) {
+	private double getFractionPixelsChanged(@NotNull BufferedImage from, @NotNull BufferedImage to) {
 		int pixelsChanged = getNPixelsChanged(from, to);
 		int totalPixels = to.getWidth() * to.getHeight();
 		return (double) pixelsChanged / totalPixels;
 	}
 	
-	private int getNPixelsChanged(BufferedImage from, BufferedImage to) {
+	private int getNPixelsChanged(@NotNull BufferedImage from, @NotNull BufferedImage to) {
 		assert from.getWidth() == to.getWidth();
 		assert from.getHeight() == to.getHeight();
 		
-		// TODO: implement correctly?
 		int changed = 0;
 		for (int x = 0; x < from.getWidth(); x++) {
 			for (int y = 0; y < from.getHeight(); y++) {
@@ -83,11 +81,6 @@ public class ImageTresholdCache {
 		}
 		
 		return changed;
-	}
-	
-	private File getMapDir(ExportConfig config) {
-		return new File(plugin.getDataFolder(),
-				String.format("exports/%s/%s", config.world.name, config.map.prefix));
 	}
 	
 }

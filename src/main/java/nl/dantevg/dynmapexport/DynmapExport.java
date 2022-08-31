@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
@@ -25,7 +26,7 @@ public class DynmapExport extends JavaPlugin {
 	FileConfiguration config;
 	Logger logger;
 	
-	protected DynmapWebAPI.Configuration worldConfiguration;
+	protected DynmapWebAPI.@Nullable Configuration worldConfiguration;
 	protected ImageTresholdCache imageTresholdCache;
 	protected ExportScheduler exportScheduler;
 	protected Downloader downloader;
@@ -106,7 +107,7 @@ public class DynmapExport extends JavaPlugin {
 		return null;
 	}
 	
-	private ExportConfig getExportConfig(Map<?, ?> exportMap) {
+	private @Nullable ExportConfig getExportConfig(@NotNull Map<?, ?> exportMap) {
 		String worldName = (String) exportMap.get("world");
 		String mapName = (String) exportMap.get("map");
 		int zoom = (int) exportMap.get("zoom");
@@ -130,7 +131,7 @@ public class DynmapExport extends JavaPlugin {
 		return new ExportConfig(world, map, zoom, from, to);
 	}
 	
-	protected String debug() {
+	protected @NotNull String debug() {
 		return "Dynmap world configuration:\n" + worldConfiguration.toString();
 	}
 	
