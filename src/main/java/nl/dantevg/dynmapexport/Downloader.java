@@ -12,7 +12,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
+import java.time.ZoneId;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -70,15 +72,10 @@ public class Downloader {
 	public int downloadTiles(ExportConfig config) {
 		int nDownloaded = 0;
 		Instant now = Instant.now();
+		Instant cached = plugin.imageTresholdCache.getCachedInstant(config);
 		List<TileLocation> tiles = configToTileLocations(config);
 		
-		// Do not download if nothing changed
-		Set<TileGroupCoords> tileGroups = new HashSet<>();
-		for (TileLocation tile : tiles) tileGroups.add(tile.getTileGroupCoords());
-		if (!plugin.hashCache.anyChanged(config, tileGroups)) return -1;
-		
 		Set<File> downloadedFiles = new HashSet<>();
-		
 		for (TileLocation tile : tiles) {
 			String tilePath = getPath(config, tile);
 			File dest = getDestFile(now, config, tile);
@@ -86,11 +83,31 @@ public class Downloader {
 			if (download(tilePath, dest)) nDownloaded++;
 		}
 		
-		for (File file : downloadedFiles) {
-			
+		// Not enough changes, remove tile files and directory again
+		if (downloadedFiles.size() > 0
+				&& !plugin.imageTresholdCache.anyChangedSince(cached, config, downloadedFiles)) {
+			File dir = downloadedFiles.stream().findAny().get().getParentFile();
+			// Delete downloaded tile files
+			for (File file : downloadedFiles) {
+				file.delete();
+			}
+			// Delete parent directory
+			dir.delete();
+			return -1;
 		}
 		
 		return nDownloaded;
+	}
+	
+	/**
+	 * Basic instant format without separators (which are problematic in filenames)
+	 * https://stackoverflow.com/a/39820917
+	 *
+	 * @return DateTimeFormatter of the basic ISO 8601 format
+	 */
+	public DateTimeFormatter getInstantFormat() {
+		return DateTimeFormatter.ofPattern("uuuuMMdd'T'HHmmss'Z'")
+				.withZone(ZoneId.from(ZoneOffset.UTC));
 	}
 	
 	/**
@@ -125,7 +142,7 @@ public class Downloader {
 	 */
 	private boolean download(String path, @NotNull File dest) {
 		try {
-			URL url = new URL(String.format("http://localhost:%d/%s", plugin.dynmapPort, path));
+			URL url = new URL(String.format("http://%s/%s", plugin.dynmapHost, path));
 			InputStream inputStream = url.openStream();
 			dest.getParentFile().mkdirs(); // Make all directories on path to file
 			long bytesWritten = Files.copy(inputStream, dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -170,15 +187,10 @@ public class Downloader {
 	 * <code>plugins/DynmapExport/exports/{world}/{map}/{now}/{zoom}_{tileX}_{tileY}.png</code>
 	 */
 	private @NotNull File getDestFile(@NotNull Instant now, ExportConfig config, TileLocation tile) {
-		// Convert extended format to basic format without separators (which are problematic in filenames)
-		// https://stackoverflow.com/a/39820917
-		String datetime = now.truncatedTo(ChronoUnit.SECONDS).toString()
-				.replace("-", "")
-				.replace(":", "");
 		return new File(plugin.getDataFolder(), String.format("exports/%s/%s/%s/%s%d_%d.png",
 				config.world.name,
 				config.map.prefix,
-				datetime,
+				getInstantFormat().format(now),
 				getZoomString(config.zoom), tile.x, tile.y));
 	}
 	

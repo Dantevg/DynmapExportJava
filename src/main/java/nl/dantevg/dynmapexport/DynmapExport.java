@@ -1,8 +1,6 @@
 package nl.dantevg.dynmapexport;
 
 import com.google.gson.Gson;
-import nl.dantevg.dynmapexport.cache.HashCache;
-import nl.dantevg.dynmapexport.cache.ImageTresholdCache;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -13,6 +11,7 @@ import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,16 +23,15 @@ public class DynmapExport extends JavaPlugin {
 	public static final int Y_LEVEL = 64;
 	
 	FileConfiguration config;
-	public Logger logger;
+	Logger logger;
 	
 	protected DynmapWebAPI.Configuration worldConfiguration;
-	protected HashCache hashCache;
 	protected ImageTresholdCache imageTresholdCache;
 	protected ExportScheduler exportScheduler;
 	protected Downloader downloader;
 	protected List<ExportConfig> exportConfigs;
 	
-	public int dynmapPort;
+	protected String dynmapHost;
 	
 	@Override
 	public void onEnable() {
@@ -45,24 +43,27 @@ public class DynmapExport extends JavaPlugin {
 		config = getConfig();
 		saveDefaultConfig();
 		
-		dynmapPort = config.getInt("dynmap-port");
-		
-		worldConfiguration = getDynmapConfiguration();
-		
-		exportConfigs = config.getMapList("exports").stream()
-				.map(this::getExportConfig)
-				.filter(Objects::nonNull)
-				.collect(Collectors.toList());
+		dynmapHost = config.getString("dynmap-host");
 		
 		// Register commands
 		CommandDynmapExport command = new CommandDynmapExport(this);
 		getCommand("dynmapexport").setExecutor(command);
 		getCommand("dynmapexport").setTabCompleter(command);
 		
-		hashCache = new HashCache(this);
 		imageTresholdCache = new ImageTresholdCache(this);
 		exportScheduler = new ExportScheduler(this);
 		downloader = new Downloader(this);
+		
+		worldConfiguration = getDynmapConfiguration();
+		if (worldConfiguration == null) {
+			exportConfigs = new ArrayList<>();
+			return;
+		}
+		
+		exportConfigs = config.getMapList("exports").stream()
+				.map(this::getExportConfig)
+				.filter(Objects::nonNull)
+				.collect(Collectors.toList());
 	}
 	
 	public void export() {
@@ -91,15 +92,14 @@ public class DynmapExport extends JavaPlugin {
 	 * @return the world configuration
 	 */
 	private @Nullable DynmapWebAPI.Configuration getDynmapConfiguration() {
-		int port = config.getInt("dynmap-port");
 		try {
-			URL url = new URL(String.format("http://localhost:%d/up/configuration", port));
+			URL url = new URL(String.format("http://%s/up/configuration", dynmapHost));
 			InputStreamReader reader = new InputStreamReader(url.openStream());
 			return new Gson().fromJson(reader, DynmapWebAPI.Configuration.class);
 		} catch (MalformedURLException e) {
 			logger.log(Level.SEVERE, e.getMessage());
 		} catch (ConnectException e) {
-			logger.log(Level.WARNING, "Could not connect to Dynmap, check the port in config.yml");
+			logger.log(Level.SEVERE, "Could not connect to Dynmap, check the port in config.yml");
 		} catch (IOException e) {
 			logger.log(Level.SEVERE, "Could not download Dynmap worlds configuration", e);
 		}
