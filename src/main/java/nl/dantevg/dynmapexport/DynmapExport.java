@@ -1,6 +1,7 @@
 package nl.dantevg.dynmapexport;
 
 import com.google.gson.Gson;
+import nl.dantevg.dynmapexport.location.TileCoords;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -113,8 +114,8 @@ public class DynmapExport extends JavaPlugin {
 		int zoom = (int) exportMap.get("zoom");
 		Map<String, Integer> fromMap = (Map<String, Integer>) exportMap.get("from");
 		Map<String, Integer> toMap = (Map<String, Integer>) exportMap.get("to");
-		TileLocation from = new TileLocation(fromMap.get("x"), fromMap.get("y"));
-		TileLocation to = new TileLocation(toMap.get("x"), toMap.get("y"));
+		TileCoords from = new TileCoords(fromMap.get("x"), fromMap.get("y"));
+		TileCoords to = new TileCoords(toMap.get("x"), toMap.get("y"));
 		
 		DynmapWebAPI.World world = worldConfiguration.getWorldByName(worldName);
 		if (world == null) {

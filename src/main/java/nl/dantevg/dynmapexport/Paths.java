@@ -1,6 +1,7 @@
 package nl.dantevg.dynmapexport;
 
 import com.google.common.base.Strings;
+import nl.dantevg.dynmapexport.location.TileCoords;
 import org.jetbrains.annotations.NotNull;
 
 import java.io.File;
@@ -34,7 +35,7 @@ public class Paths {
 	 * @return the path to the Dynmap tile image at
 	 * <code>{world}/{map}/{regionX}_{regionZ}/{zoom}_{tileX}_{tileY}.png</code>
 	 */
-	public static @NotNull String getDynmapTilePath(@NotNull ExportConfig config, @NotNull TileLocation tile) {
+	public static @NotNull String getDynmapTilePath(@NotNull ExportConfig config, @NotNull TileCoords tile) {
 		return String.format("tiles/%s/%s/%s/%s%d_%d.png",
 				config.world.name,
 				config.map.prefix,
@@ -78,7 +79,7 @@ public class Paths {
 	 * @return the local file of the tile at location
 	 * <code>plugins/DynmapExport/exports/{world}/{map}/{instant}/{zoom}_{tileX}_{tileY}.png</code>
 	 */
-	public static @NotNull File getLocalTileFile(@NotNull DynmapExport plugin, @NotNull ExportConfig config, @NotNull Instant instant, @NotNull TileLocation tile) {
+	public static @NotNull File getLocalTileFile(@NotNull DynmapExport plugin, @NotNull ExportConfig config, @NotNull Instant instant, @NotNull TileCoords tile) {
 		return new File(getLocalExportDir(plugin, config, instant),
 				String.format("%s%d_%d.png", getZoomString(config.zoom), tile.x, tile.y));
 	}

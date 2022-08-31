@@ -1,5 +1,7 @@
 package nl.dantevg.dynmapexport;
 
+import nl.dantevg.dynmapexport.location.TileCoords;
+import nl.dantevg.dynmapexport.location.WorldCoords;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -41,7 +43,7 @@ public class Downloader {
 		DynmapWebAPI.Map map = world.getMapByName(mapName);
 		if (map == null) throw new IllegalArgumentException("not a valid map");
 		
-		TileLocation tile = new WorldLocation(x, DynmapExport.Y_LEVEL, z).toTileLocation(map, zoom);
+		TileCoords tile = new WorldCoords(x, DynmapExport.Y_LEVEL, z).toTileCoords(map, zoom);
 		ExportConfig config = new ExportConfig(world, map, zoom, tile);
 		return downloadTile(config, tile);
 	}
@@ -50,12 +52,12 @@ public class Downloader {
 	 * Download a single tile at the given location.
 	 *
 	 * @param config       the export configuration
-	 * @param tileLocation the tile coordinates
+	 * @param tileCoords the tile coordinates
 	 * @return the path to the downloaded file
 	 */
-	public @Nullable String downloadTile(@NotNull ExportConfig config, @NotNull TileLocation tileLocation) {
-		String tilePath = Paths.getDynmapTilePath(config, tileLocation);
-		File dest = Paths.getLocalTileFile(plugin, config, Instant.now(), tileLocation);
+	public @Nullable String downloadTile(@NotNull ExportConfig config, @NotNull TileCoords tileCoords) {
+		String tilePath = Paths.getDynmapTilePath(config, tileCoords);
+		File dest = Paths.getLocalTileFile(plugin, config, Instant.now(), tileCoords);
 		return download(tilePath, dest) ? dest.getPath() : null;
 	}
 	
@@ -69,10 +71,10 @@ public class Downloader {
 		int nDownloaded = 0;
 		Instant now = Instant.now();
 		Instant cached = plugin.imageTresholdCache.getCachedInstant(config);
-		List<TileLocation> tiles = configToTileLocations(config);
+		List<TileCoords> tiles = configToTileLocations(config);
 		
 		Set<File> downloadedFiles = new HashSet<>();
-		for (TileLocation tile : tiles) {
+		for (TileCoords tile : tiles) {
 			String tilePath = Paths.getDynmapTilePath(config, tile);
 			File dest = Paths.getLocalTileFile(plugin, config, now, tile);
 			downloadedFiles.add(dest);
@@ -101,17 +103,17 @@ public class Downloader {
 	 * @param config the export config to get the tile locations of
 	 * @return a list of tiles that are within the range from the config
 	 */
-	private @NotNull List<TileLocation> configToTileLocations(@NotNull ExportConfig config) {
+	private @NotNull List<TileCoords> configToTileLocations(@NotNull ExportConfig config) {
 		int minX = zoomedFloor(Math.min(config.from.x, config.to.x), config.zoom);
 		int maxX = zoomedCeil(Math.max(config.from.x, config.to.x), config.zoom);
 		int minY = zoomedFloor(Math.min(config.from.y, config.to.y), config.zoom);
 		int maxY = zoomedCeil(Math.max(config.from.y, config.to.y), config.zoom);
 		
-		List<TileLocation> tiles = new ArrayList<>();
+		List<TileCoords> tiles = new ArrayList<>();
 		
 		for (int x = minX; x <= maxX; x += 1 << config.zoom) {
 			for (int y = minY; y <= maxY; y += 1 << config.zoom) {
-				tiles.add(new TileLocation(x, y));
+				tiles.add(new TileCoords(x, y));
 			}
 		}
 		
