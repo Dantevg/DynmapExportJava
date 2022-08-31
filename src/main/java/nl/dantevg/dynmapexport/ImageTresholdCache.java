@@ -15,10 +15,11 @@ import java.util.logging.Level;
 
 public class ImageTresholdCache {
 	private final DynmapExport plugin;
-	private final double treshold = 0.2;
+	private final double treshold;
 	
 	public ImageTresholdCache(DynmapExport plugin) {
 		this.plugin = plugin;
+		this.treshold = plugin.config.getDouble("change-treshold");
 	}
 	
 	public boolean anyChangedSince(Instant since, @NotNull ExportConfig config, @NotNull Set<File> files) {
@@ -58,9 +59,7 @@ public class ImageTresholdCache {
 			plugin.logger.log(Level.WARNING, "Could not read image from " + cachedImageFile);
 			return true;
 		}
-		double fraction = getFractionPixelsChanged(from, image);
-		plugin.logger.log(Level.INFO, String.format("%f%% of %s changed", fraction, file.getName()));
-		return fraction >= treshold;
+		return getFractionPixelsChanged(from, image) >= treshold;
 	}
 	
 	private double getFractionPixelsChanged(@NotNull BufferedImage from, @NotNull BufferedImage to) {

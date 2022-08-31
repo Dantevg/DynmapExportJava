@@ -1,6 +1,12 @@
 # DynmapExport config file
 
+# The hostname/ip and port of Dynmap
+# (use localhost for Dynmap running on the same server)
 dynmap-host: localhost:8123
+
+# The minimum fraction of pixels to change within a single Dynmap tile for the
+# export to happen.
+change-treshold: 0.2
 
 # Automatically export in this interval. Format is a simplified ISO-8601, e.g. 1h
 # (deviations from ISO-8601: no prefix "P", no "T" separator, days not supported)
