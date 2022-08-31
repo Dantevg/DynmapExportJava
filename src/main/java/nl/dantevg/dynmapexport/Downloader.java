@@ -75,12 +75,19 @@ public class Downloader {
 		// Do not download if nothing changed
 		Set<TileGroupCoords> tileGroups = new HashSet<>();
 		for (TileLocation tile : tiles) tileGroups.add(tile.getTileGroupCoords());
-		if (!plugin.exportCache.anyChanged(config, tileGroups)) return -1;
+		if (!plugin.hashCache.anyChanged(config, tileGroups)) return -1;
+		
+		Set<File> downloadedFiles = new HashSet<>();
 		
 		for (TileLocation tile : tiles) {
 			String tilePath = getPath(config, tile);
 			File dest = getDestFile(now, config, tile);
+			downloadedFiles.add(dest);
 			if (download(tilePath, dest)) nDownloaded++;
+		}
+		
+		for (File file : downloadedFiles) {
+			
 		}
 		
 		return nDownloaded;

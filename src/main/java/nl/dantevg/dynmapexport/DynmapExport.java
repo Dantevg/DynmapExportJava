@@ -1,6 +1,8 @@
 package nl.dantevg.dynmapexport;
 
 import com.google.gson.Gson;
+import nl.dantevg.dynmapexport.cache.HashCache;
+import nl.dantevg.dynmapexport.cache.ImageTresholdCache;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -22,15 +24,16 @@ public class DynmapExport extends JavaPlugin {
 	public static final int Y_LEVEL = 64;
 	
 	FileConfiguration config;
-	Logger logger;
+	public Logger logger;
 	
 	protected DynmapWebAPI.Configuration worldConfiguration;
-	protected ExportCache exportCache;
+	protected HashCache hashCache;
+	protected ImageTresholdCache imageTresholdCache;
 	protected ExportScheduler exportScheduler;
 	protected Downloader downloader;
 	protected List<ExportConfig> exportConfigs;
 	
-	protected int dynmapPort;
+	public int dynmapPort;
 	
 	@Override
 	public void onEnable() {
@@ -56,7 +59,8 @@ public class DynmapExport extends JavaPlugin {
 		getCommand("dynmapexport").setExecutor(command);
 		getCommand("dynmapexport").setTabCompleter(command);
 		
-		exportCache = new ExportCache(this);
+		hashCache = new HashCache(this);
+		imageTresholdCache = new ImageTresholdCache(this);
 		exportScheduler = new ExportScheduler(this);
 		downloader = new Downloader(this);
 	}

@@ -1,8 +1,11 @@
-package nl.dantevg.dynmapexport;
+package nl.dantevg.dynmapexport.cache;
 
 import com.google.common.io.ByteStreams;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Files;
+import nl.dantevg.dynmapexport.DynmapExport;
+import nl.dantevg.dynmapexport.ExportConfig;
+import nl.dantevg.dynmapexport.TileGroupCoords;
 import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
@@ -16,10 +19,10 @@ import java.util.Arrays;
 import java.util.Set;
 import java.util.logging.Level;
 
-public class ExportCache {
+public class HashCache {
 	private final DynmapExport plugin;
 	
-	public ExportCache(DynmapExport plugin) {
+	public HashCache(DynmapExport plugin) {
 		this.plugin = plugin;
 	}
 	
