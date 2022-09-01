@@ -13,10 +13,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.StandardCopyOption;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 
 public class Downloader {
@@ -51,7 +48,7 @@ public class Downloader {
 	/**
 	 * Download a single tile at the given location.
 	 *
-	 * @param config       the export configuration
+	 * @param config     the export configuration
 	 * @param tileCoords the tile coordinates
 	 * @return the path to the downloaded file
 	 */
@@ -67,34 +64,36 @@ public class Downloader {
 	 * @param config the export configuration
 	 * @return the amount of tiles downloaded, or -1 if nothing changed in the Dynmap
 	 */
-	public int downloadTiles(@NotNull ExportConfig config) {
-		int nDownloaded = 0;
-		Instant now = Instant.now();
+	public Map<TileCoords, File> downloadTiles(@NotNull ExportConfig config, Instant now) {
 		Instant cached = plugin.imageTresholdCache.getCachedInstant(config);
 		List<TileCoords> tiles = configToTileLocations(config);
 		
-		Set<File> downloadedFiles = new HashSet<>();
+		Map<TileCoords, File> downloadedFiles = new HashMap<>();
 		for (TileCoords tile : tiles) {
 			String tilePath = Paths.getDynmapTilePath(config, tile);
 			File dest = Paths.getLocalTileFile(plugin, config, now, tile);
-			downloadedFiles.add(dest);
-			if (download(tilePath, dest)) nDownloaded++;
+			downloadedFiles.put(tile, dest);
+			download(tilePath, dest);
 		}
 		
 		// Not enough changes, remove tile files and directory again
 		if (downloadedFiles.size() > 0
-				&& !plugin.imageTresholdCache.anyChangedSince(cached, config, downloadedFiles)) {
-			File dir = downloadedFiles.stream().findAny().get().getParentFile();
-			// Delete downloaded tile files
-			for (File file : downloadedFiles) {
-				file.delete();
-			}
-			// Delete parent directory
-			dir.delete();
-			return -1;
+				&& !plugin.imageTresholdCache.anyChangedSince(cached, config, downloadedFiles.values())) {
+			removeExportedTiles(downloadedFiles.values());
+			return null;
 		}
 		
-		return nDownloaded;
+		return downloadedFiles;
+	}
+	
+	public static void removeExportedTiles(Collection<File> files) {
+		File dir = files.stream().findAny().get().getParentFile();
+		
+		// Delete downloaded tile files
+		for (File file : files) file.delete();
+		
+		// Delete parent directory
+		dir.delete();
 	}
 	
 	/**
@@ -103,16 +102,11 @@ public class Downloader {
 	 * @param config the export config to get the tile locations of
 	 * @return a list of tiles that are within the range from the config
 	 */
-	private @NotNull List<TileCoords> configToTileLocations(@NotNull ExportConfig config) {
-		int minX = zoomedFloor(Math.min(config.from.x, config.to.x), config.zoom);
-		int maxX = zoomedCeil(Math.max(config.from.x, config.to.x), config.zoom);
-		int minY = zoomedFloor(Math.min(config.from.y, config.to.y), config.zoom);
-		int maxY = zoomedCeil(Math.max(config.from.y, config.to.y), config.zoom);
-		
+	public static @NotNull List<TileCoords> configToTileLocations(@NotNull ExportConfig config) {
 		List<TileCoords> tiles = new ArrayList<>();
 		
-		for (int x = minX; x <= maxX; x += 1 << config.zoom) {
-			for (int y = minY; y <= maxY; y += 1 << config.zoom) {
+		for (int x = config.from.x; x <= config.to.x; x += 1 << config.zoom) {
+			for (int y = config.from.y; y <= config.to.y; y += 1 << config.zoom) {
 				tiles.add(new TileCoords(x, y));
 			}
 		}
@@ -142,14 +136,6 @@ public class Downloader {
 			plugin.logger.log(Level.SEVERE, "Could not download tile", e);
 		}
 		return false;
-	}
-	
-	private static int zoomedFloor(int value, int zoom) {
-		return value / (1 << zoom) * (1 << zoom);
-	}
-	
-	private static int zoomedCeil(int value, int zoom) {
-		return (int) Math.ceil((double) value / (1 << zoom)) * (1 << zoom);
 	}
 	
 }

@@ -8,11 +8,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -31,6 +33,7 @@ public class DynmapExport extends JavaPlugin {
 	protected ImageTresholdCache imageTresholdCache;
 	protected ExportScheduler exportScheduler;
 	protected Downloader downloader;
+	protected TileCombiner tileCombiner;
 	protected List<ExportConfig> exportConfigs;
 	
 	protected String dynmapHost;
@@ -55,6 +58,7 @@ public class DynmapExport extends JavaPlugin {
 		imageTresholdCache = new ImageTresholdCache(this);
 		exportScheduler = new ExportScheduler(this);
 		downloader = new Downloader(this);
+		tileCombiner = new TileCombiner(this);
 		
 		worldConfiguration = getDynmapConfiguration();
 		if (worldConfiguration == null) {
@@ -68,13 +72,22 @@ public class DynmapExport extends JavaPlugin {
 				.collect(Collectors.toList());
 	}
 	
-	public void export() {
-		int nSkipped = 0;
+	public int export() {
+		int nExported = 0;
+		Instant now = Instant.now();
 		for (ExportConfig exportConfig : exportConfigs) {
-			if (downloader.downloadTiles(exportConfig) == -1) nSkipped++;
+			Map<TileCoords, File> downloadedTiles = downloader.downloadTiles(exportConfig, now);
+			if (downloadedTiles != null && downloadedTiles.size() > 0) {
+				nExported++;
+				// TODO: make this a (low-priority) background job
+				if (tileCombiner.combineAndSave(exportConfig, now)) {
+					Downloader.removeExportedTiles(downloadedTiles.values());
+				}
+			}
 		}
 		logger.log(Level.INFO, String.format("Exported %d configs, skipped %d",
-				exportConfigs.size() - nSkipped, nSkipped));
+				nExported, exportConfigs.size() - nExported));
+		return nExported;
 	}
 	
 	public void reload() {

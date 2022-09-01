@@ -1,5 +1,6 @@
 package nl.dantevg.dynmapexport;
 
+import com.google.common.io.Files;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -10,7 +11,7 @@ import java.io.IOException;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
-import java.util.Set;
+import java.util.Collection;
 import java.util.logging.Level;
 
 public class ImageTresholdCache {
@@ -22,7 +23,7 @@ public class ImageTresholdCache {
 		this.treshold = plugin.config.getDouble("change-treshold");
 	}
 	
-	public boolean anyChangedSince(Instant since, @NotNull ExportConfig config, @NotNull Set<File> files) {
+	public boolean anyChangedSince(Instant since, @NotNull ExportConfig config, @NotNull Collection<File> files) {
 		return files.stream().anyMatch(file -> hasChangedSince(since, config, file));
 	}
 	
@@ -32,6 +33,7 @@ public class ImageTresholdCache {
 		DateTimeFormatter formatter = Paths.getInstantFormat();
 		return Arrays.stream(mapDir.listFiles())
 				.map(File::getName) // file -> filename
+				.map(Files::getNameWithoutExtension)
 				.map(formatter::parse).map(Instant::from) // filename -> instant
 				.sorted()
 				.reduce((a, b) -> b) // get latest instant

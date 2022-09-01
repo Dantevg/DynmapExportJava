@@ -63,7 +63,9 @@ public class Paths {
 	 * @param instant the time of the export
 	 * @return the local export directory at <code>plugins/DynmapExport/exports/{world}/{map}/{instant}/</code>
 	 */
-	public static @NotNull File getLocalExportDir(@NotNull DynmapExport plugin, @NotNull ExportConfig config, @NotNull Instant instant) {
+	public static @NotNull File getLocalExportDir(@NotNull DynmapExport plugin,
+	                                              @NotNull ExportConfig config,
+	                                              @NotNull Instant instant) {
 		return new File(getLocalMapDir(plugin, config), getInstantFormat().format(instant));
 	}
 	
@@ -79,9 +81,27 @@ public class Paths {
 	 * @return the local file of the tile at location
 	 * <code>plugins/DynmapExport/exports/{world}/{map}/{instant}/{zoom}_{tileX}_{tileY}.png</code>
 	 */
-	public static @NotNull File getLocalTileFile(@NotNull DynmapExport plugin, @NotNull ExportConfig config, @NotNull Instant instant, @NotNull TileCoords tile) {
+	public static @NotNull File getLocalTileFile(@NotNull DynmapExport plugin,
+	                                             @NotNull ExportConfig config,
+	                                             @NotNull Instant instant,
+	                                             @NotNull TileCoords tile) {
 		return new File(getLocalExportDir(plugin, config, instant),
 				String.format("%s%d_%d.png", getZoomString(config.zoom), tile.x, tile.y));
+	}
+	
+	/**
+	 * Get the local file for the combined image of a single export.
+	 *
+	 * @param plugin  the DynmapExport plugin
+	 * @param config  the export configuration
+	 * @param instant the time of the export
+	 * @return the local file of the combined image at location
+	 * <code>plugins/DynmapExport/exports/{world}/{map}/{instant}.png</code>
+	 */
+	public static @NotNull File getLocalCombinedFile(@NotNull DynmapExport plugin,
+	                                                 @NotNull ExportConfig config,
+	                                                 @NotNull Instant instant) {
+		return new File(getLocalMapDir(plugin, config), getInstantFormat().format(instant) + ".png");
 	}
 	
 	public static @NotNull String getZoomString(int zoom) {

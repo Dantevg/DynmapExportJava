@@ -3,9 +3,11 @@ package nl.dantevg.dynmapexport;
 import org.bukkit.command.*;
 import org.jetbrains.annotations.NotNull;
 
+import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.stream.Collectors;
 
 public class CommandDynmapExport implements CommandExecutor, TabCompleter {
@@ -18,13 +20,9 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, Command command, String label, String @NotNull [] args) {
 		if (args.length == 1 && args[0].equals("now")) {
-			// Export all from config.yml
-			int nSkipped = 0;
-			for (ExportConfig exportConfig : plugin.exportConfigs) {
-				if (plugin.downloader.downloadTiles(exportConfig) == -1) nSkipped++;
-			}
-			sender.sendMessage(String.format("Exported %d configs, skipped %d",
-					plugin.exportConfigs.size() - nSkipped, nSkipped));
+			int nExported = plugin.export();
+			plugin.logger.log(Level.INFO, String.format("Exported %d configs, skipped %d",
+					nExported, plugin.exportConfigs.size() - nExported));
 			return true;
 		} else if (args.length == 1 && args[0].equals("reload")) {
 			plugin.reload();
