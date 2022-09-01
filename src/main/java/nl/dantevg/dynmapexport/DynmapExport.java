@@ -29,7 +29,7 @@ public class DynmapExport extends JavaPlugin {
 	FileConfiguration config;
 	Logger logger;
 	
-	protected DynmapWebAPI.@Nullable Configuration worldConfiguration;
+	protected @Nullable DynmapWebAPI.Configuration worldConfiguration;
 	protected ImageTresholdCache imageTresholdCache;
 	protected ExportScheduler exportScheduler;
 	protected Downloader downloader;
@@ -85,7 +85,8 @@ public class DynmapExport extends JavaPlugin {
 			Map<TileCoords, File> downloadedTiles = downloader.downloadTiles(exportConfig, now);
 			if (downloadedTiles != null && downloadedTiles.size() > 0) {
 				nExported++;
-				if (tileCombiner.combineAndSave(exportConfig, now)) {
+				if (config.getBoolean("auto-combine")
+						&& tileCombiner.combineAndSave(exportConfig, now)) {
 					downloader.removeOldExportDirs(exportConfig);
 				}
 			}

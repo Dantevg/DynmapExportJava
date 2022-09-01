@@ -8,6 +8,11 @@ dynmap-host: localhost:8123
 # export to happen.
 change-treshold: 0.2
 
+# Whether to automatically combine the tiles into a single image.
+# Disabling this can reduce server lag if you encounter it (for large images),
+# but you'll need to combine the tiles yourself.
+auto-combine: true
+
 # Automatically export in this interval. Format is a simplified ISO-8601, e.g. 1h
 # (deviations from ISO-8601: no prefix "P", no "T" separator, days not supported)
 # (uncomment to use)
