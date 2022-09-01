@@ -147,7 +147,7 @@ public class Downloader {
 		} catch (MalformedURLException e) {
 			plugin.logger.log(Level.SEVERE, e.getMessage());
 		} catch (IOException e) {
-			plugin.logger.log(Level.SEVERE, "Could not download tile", e);
+			plugin.logger.log(Level.SEVERE, "Could not download tile " + path, e);
 		}
 		return false;
 	}

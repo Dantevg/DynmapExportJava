@@ -1,6 +1,8 @@
 package nl.dantevg.dynmapexport;
 
 import nl.dantevg.dynmapexport.location.TileCoords;
+import nl.dantevg.dynmapexport.location.WorldCoords;
+import org.jetbrains.annotations.NotNull;
 
 public class ExportConfig {
 	public final DynmapWebAPI.World world;
@@ -24,6 +26,14 @@ public class ExportConfig {
 	
 	public ExportConfig(DynmapWebAPI.World world, DynmapWebAPI.Map map, int zoom, TileCoords tile) {
 		this(world, map, zoom, tile, tile);
+	}
+	
+	public ExportConfig(DynmapWebAPI.World world, DynmapWebAPI.Map map, int zoom, @NotNull WorldCoords from, @NotNull WorldCoords to) {
+		this(world, map, zoom, from.toTileCoords(map, zoom), to.toTileCoords(map, zoom));
+	}
+	
+	public ExportConfig(DynmapWebAPI.World world, DynmapWebAPI.Map map, int zoom, @NotNull WorldCoords coords) {
+		this(world, map, zoom, coords.toTileCoords(map, zoom));
 	}
 	
 	private static int zoomedFloor(int value, int zoom) {

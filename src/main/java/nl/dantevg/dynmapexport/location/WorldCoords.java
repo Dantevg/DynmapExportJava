@@ -14,7 +14,7 @@ public class WorldCoords {
 		this.z = z;
 	}
 	
-	public @NotNull TileCoords toTileCoords(DynmapWebAPI.@NotNull Map map, int zoom) {
+	public @NotNull TileCoords toTileCoords(@NotNull DynmapWebAPI.Map map, int zoom) {
 		double unscaledX = (int) map.worldtomap[0] * x
 				+ (int) map.worldtomap[1] * y
 				+ (int) map.worldtomap[2] * z;

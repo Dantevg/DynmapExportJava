@@ -2,6 +2,7 @@ package nl.dantevg.dynmapexport;
 
 import com.google.gson.Gson;
 import nl.dantevg.dynmapexport.location.TileCoords;
+import nl.dantevg.dynmapexport.location.WorldCoords;
 import org.bukkit.Bukkit;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -133,18 +134,33 @@ public class DynmapExport extends JavaPlugin {
 		int zoom = (int) exportMap.get("zoom");
 		Map<String, Integer> fromMap = (Map<String, Integer>) exportMap.get("from");
 		Map<String, Integer> toMap = (Map<String, Integer>) exportMap.get("to");
-		TileCoords from = new TileCoords(fromMap.get("x"), fromMap.get("y"));
-		TileCoords to = new TileCoords(toMap.get("x"), toMap.get("y"));
+		
+		if (!fromMap.containsKey("x") || !fromMap.containsKey("z")) {
+			logger.log(Level.WARNING, "export field 'from' needs to have at least fields 'x' and 'z', ignoring this export");
+			return null;
+		}
+		if (!toMap.containsKey("x") || !toMap.containsKey("z")) {
+			logger.log(Level.WARNING, "export field 'to' needs to have at least fields 'x' and 'z', ignoring this export");
+			return null;
+		}
+		WorldCoords from = new WorldCoords(
+				fromMap.get("x"),
+				fromMap.getOrDefault("y", Y_LEVEL),
+				fromMap.get("z"));
+		WorldCoords to = new WorldCoords(
+				toMap.get("x"),
+				toMap.getOrDefault("y", Y_LEVEL),
+				toMap.get("z"));
 		
 		DynmapWebAPI.World world = worldConfiguration.getWorldByName(worldName);
 		if (world == null) {
-			logger.log(Level.SEVERE, worldName + " is not a valid world, ignoring");
+			logger.log(Level.SEVERE, worldName + " is not a valid world, ignoring this export");
 			return null;
 		}
 		
 		DynmapWebAPI.Map map = world.getMapByName(mapName);
 		if (map == null) {
-			logger.log(Level.SEVERE, mapName + " is not a valid map for world " + worldName + ", ignoring");
+			logger.log(Level.SEVERE, mapName + " is not a valid map for world " + worldName + ", ignoring this export");
 			return null;
 		}
 		

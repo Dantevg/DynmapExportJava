@@ -18,14 +18,14 @@ auto-combine: true
 # (uncomment to use)
 #schedule: 1m
 
-# A list of export configurations.
+# A list of export configurations. Coordinates are in-game block coordinates.
 exports:
 #  - world: world
 #    map: flat
 #    zoom: 0
 #    from:
-#      x: 0
-#      y: 0
+#      x: -128
+#      y: -128
 #    to:
-#      x: 2
-#      y: 2
+#      x: 128
+#      y: 128
