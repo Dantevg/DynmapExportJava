@@ -24,6 +24,9 @@ public class TileCombiner {
 		int width = tileCoordsToPixelX(config, config.to) + PIXELS_PER_TILE;
 		int height = tileCoordsToPixelY(config, config.from) + PIXELS_PER_TILE;
 		
+		plugin.logger.log(Level.CONFIG, String.format("Creating a %dx%d image from %s to %s",
+				width, height, config.from, config.to));
+		
 		BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		Graphics2D graphics = output.createGraphics();
 		

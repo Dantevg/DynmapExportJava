@@ -1,5 +1,6 @@
 package nl.dantevg.dynmapexport;
 
+import org.bukkit.Bukkit;
 import org.bukkit.command.*;
 import org.jetbrains.annotations.NotNull;
 
@@ -19,11 +20,13 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 	@Override
 	public boolean onCommand(@NotNull CommandSender sender, Command command, String label, String @NotNull [] args) {
 		if (args.length == 1 && args[0].equals("now")) {
-			int nExported = plugin.export();
-			if (!(sender instanceof ConsoleCommandSender)) {
-				plugin.logger.log(Level.INFO, String.format("Exported %d configs, skipped %d",
-						nExported, plugin.exportConfigs.size() - nExported));
-			}
+			Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
+				int nExported = plugin.export();
+				if (!(sender instanceof ConsoleCommandSender)) {
+					plugin.logger.log(Level.INFO, String.format("Exported %d configs, skipped %d",
+							nExported, plugin.exportConfigs.size() - nExported));
+				}
+			});
 			return true;
 		} else if (args.length == 1 && args[0].equals("reload")) {
 			plugin.reload();

@@ -72,6 +72,12 @@ public class DynmapExport extends JavaPlugin {
 				.collect(Collectors.toList());
 	}
 	
+	/**
+	 * Export all configurations. <b>Should be run as an async task to prevent
+	 * server lag!</b>
+	 *
+	 * @return the number of configs that are exported (i.e. they had enough changes)
+	 */
 	public int export() {
 		int nExported = 0;
 		Instant now = Instant.now();
@@ -79,7 +85,6 @@ public class DynmapExport extends JavaPlugin {
 			Map<TileCoords, File> downloadedTiles = downloader.downloadTiles(exportConfig, now);
 			if (downloadedTiles != null && downloadedTiles.size() > 0) {
 				nExported++;
-				// TODO: make this a (low-priority) background job
 				if (tileCombiner.combineAndSave(exportConfig, now)) {
 					downloader.removeOldExportDirs(exportConfig);
 				}
