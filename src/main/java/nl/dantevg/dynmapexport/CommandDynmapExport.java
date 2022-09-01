@@ -3,7 +3,6 @@ package nl.dantevg.dynmapexport;
 import org.bukkit.command.*;
 import org.jetbrains.annotations.NotNull;
 
-import java.time.Instant;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -21,8 +20,10 @@ public class CommandDynmapExport implements CommandExecutor, TabCompleter {
 	public boolean onCommand(@NotNull CommandSender sender, Command command, String label, String @NotNull [] args) {
 		if (args.length == 1 && args[0].equals("now")) {
 			int nExported = plugin.export();
-			plugin.logger.log(Level.INFO, String.format("Exported %d configs, skipped %d",
-					nExported, plugin.exportConfigs.size() - nExported));
+			if (!(sender instanceof ConsoleCommandSender)) {
+				plugin.logger.log(Level.INFO, String.format("Exported %d configs, skipped %d",
+						nExported, plugin.exportConfigs.size() - nExported));
+			}
 			return true;
 		} else if (args.length == 1 && args[0].equals("reload")) {
 			plugin.reload();

@@ -15,6 +15,7 @@ import java.nio.file.StandardCopyOption;
 import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
+import java.util.stream.Collectors;
 
 public class Downloader {
 	private final DynmapExport plugin;
@@ -79,21 +80,34 @@ public class Downloader {
 		// Not enough changes, remove tile files and directory again
 		if (downloadedFiles.size() > 0
 				&& !plugin.imageTresholdCache.anyChangedSince(cached, config, downloadedFiles.values())) {
-			removeExportedTiles(downloadedFiles.values());
+			removeExportDir(config, now);
 			return null;
 		}
 		
 		return downloadedFiles;
 	}
 	
-	public static void removeExportedTiles(Collection<File> files) {
-		File dir = files.stream().findAny().get().getParentFile();
-		
-		// Delete downloaded tile files
-		for (File file : files) file.delete();
-		
-		// Delete parent directory
+	public void removeExportDir(ExportConfig config, Instant instant) {
+		File dir = Paths.getLocalExportDir(plugin, config, instant);
+		for (File file : dir.listFiles()) file.delete();
 		dir.delete();
+	}
+	
+	/**
+	 * Remove all but the last export directory.
+	 *
+	 * @param config the export configuration
+	 */
+	public void removeOldExportDirs(ExportConfig config) {
+		File dir = Paths.getLocalMapDir(plugin, config);
+		Instant lastExport = plugin.imageTresholdCache.getCachedInstant(config);
+		List<File> exportDirs = Arrays.stream(dir.listFiles())
+				.filter(File::isDirectory)
+				.collect(Collectors.toList());
+		for (File exportDir : exportDirs) {
+			Instant instant = Paths.getInstantFromFile(exportDir);
+			if (!instant.equals(lastExport)) removeExportDir(config, instant);
+		}
 	}
 	
 	/**

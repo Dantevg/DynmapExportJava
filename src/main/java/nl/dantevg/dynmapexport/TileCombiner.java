@@ -21,8 +21,8 @@ public class TileCombiner {
 	}
 	
 	public @Nullable BufferedImage combine(ExportConfig config, Instant instant) {
-		int width = tileCoordsToPixelX(config, config.to);
-		int height = tileCoordsToPixelY(config, config.from);
+		int width = tileCoordsToPixelX(config, config.to) + PIXELS_PER_TILE;
+		int height = tileCoordsToPixelY(config, config.from) + PIXELS_PER_TILE;
 		
 		BufferedImage output = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
 		Graphics2D graphics = output.createGraphics();
@@ -58,7 +58,6 @@ public class TileCombiner {
 		}
 		int x = tileCoordsToPixelX(config, tile);
 		int y = tileCoordsToPixelY(config, tile);
-		plugin.logger.log(Level.INFO, String.format("Placing tile %s at (%d,%d)", tile, x, y));
 		graphics.drawImage(tileImage, x, y, null);
 		return true;
 	}

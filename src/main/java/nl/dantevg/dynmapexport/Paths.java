@@ -1,6 +1,7 @@
 package nl.dantevg.dynmapexport;
 
 import com.google.common.base.Strings;
+import com.google.common.io.Files;
 import nl.dantevg.dynmapexport.location.TileCoords;
 import org.jetbrains.annotations.NotNull;
 
@@ -106,6 +107,11 @@ public class Paths {
 	
 	public static @NotNull String getZoomString(int zoom) {
 		return (zoom > 0) ? Strings.repeat("z", zoom) + "_" : "";
+	}
+	
+	public static @NotNull Instant getInstantFromFile(File file) {
+		return Instant.from(getInstantFormat().parse(
+				Files.getNameWithoutExtension(file.getName())));
 	}
 	
 }

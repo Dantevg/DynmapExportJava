@@ -81,7 +81,7 @@ public class DynmapExport extends JavaPlugin {
 				nExported++;
 				// TODO: make this a (low-priority) background job
 				if (tileCombiner.combineAndSave(exportConfig, now)) {
-					Downloader.removeExportedTiles(downloadedTiles.values());
+					downloader.removeOldExportDirs(exportConfig);
 				}
 			}
 		}

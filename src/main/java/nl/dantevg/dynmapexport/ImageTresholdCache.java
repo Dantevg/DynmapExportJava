@@ -30,11 +30,8 @@ public class ImageTresholdCache {
 	public @Nullable Instant getCachedInstant(@NotNull ExportConfig config) {
 		File mapDir = Paths.getLocalMapDir(plugin, config);
 		if (!mapDir.isDirectory()) return null;
-		DateTimeFormatter formatter = Paths.getInstantFormat();
 		return Arrays.stream(mapDir.listFiles())
-				.map(File::getName) // file -> filename
-				.map(Files::getNameWithoutExtension)
-				.map(formatter::parse).map(Instant::from) // filename -> instant
+				.map(Paths::getInstantFromFile) // file -> instant
 				.sorted()
 				.reduce((a, b) -> b) // get latest instant
 				.orElse(null);
