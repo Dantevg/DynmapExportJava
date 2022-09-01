@@ -8,11 +8,13 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ConnectException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -27,10 +29,11 @@ public class DynmapExport extends JavaPlugin {
 	FileConfiguration config;
 	Logger logger;
 	
-	protected DynmapWebAPI.@Nullable Configuration worldConfiguration;
+	protected @Nullable DynmapWebAPI.Configuration worldConfiguration;
 	protected ImageTresholdCache imageTresholdCache;
 	protected ExportScheduler exportScheduler;
 	protected Downloader downloader;
+	protected TileCombiner tileCombiner;
 	protected List<ExportConfig> exportConfigs;
 	
 	protected String dynmapHost;
@@ -55,6 +58,7 @@ public class DynmapExport extends JavaPlugin {
 		imageTresholdCache = new ImageTresholdCache(this);
 		exportScheduler = new ExportScheduler(this);
 		downloader = new Downloader(this);
+		tileCombiner = new TileCombiner(this);
 		
 		worldConfiguration = getDynmapConfiguration();
 		if (worldConfiguration == null) {
@@ -68,13 +72,28 @@ public class DynmapExport extends JavaPlugin {
 				.collect(Collectors.toList());
 	}
 	
-	public void export() {
-		int nSkipped = 0;
+	/**
+	 * Export all configurations. <b>Should be run as an async task to prevent
+	 * server lag!</b>
+	 *
+	 * @return the number of configs that are exported (i.e. they had enough changes)
+	 */
+	public int export() {
+		int nExported = 0;
+		Instant now = Instant.now();
 		for (ExportConfig exportConfig : exportConfigs) {
-			if (downloader.downloadTiles(exportConfig) == -1) nSkipped++;
+			Map<TileCoords, File> downloadedTiles = downloader.downloadTiles(exportConfig, now);
+			if (downloadedTiles != null && downloadedTiles.size() > 0) {
+				nExported++;
+				if (config.getBoolean("auto-combine")
+						&& tileCombiner.combineAndSave(exportConfig, now)) {
+					downloader.removeOldExportDirs(exportConfig);
+				}
+			}
 		}
 		logger.log(Level.INFO, String.format("Exported %d configs, skipped %d",
-				exportConfigs.size() - nSkipped, nSkipped));
+				nExported, exportConfigs.size() - nExported));
+		return nExported;
 	}
 	
 	public void reload() {
