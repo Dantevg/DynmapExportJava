@@ -16,8 +16,6 @@ result.
 Whether to automatically combine the Dynmap tiles into one single image.
 If you have set a large area and you encounter lag when exporting, you can try
 disabling this.  Note that you will have to combine the tiles yourself.
-Warning: do not enable this when you already have saved non-combined tiles, as
-the plugin will automatically remove all older directories on export.
 
 ### `schedule`
 A simplified ISO-8601 formatted interval at which to automatically export all

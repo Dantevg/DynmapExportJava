@@ -94,7 +94,8 @@ public class Downloader {
 	}
 	
 	/**
-	 * Remove all but the last export directory.
+	 * Remove all but the last export directory, except ones that do not have
+	 * an associated auto-combined image.
 	 *
 	 * @param config the export configuration
 	 */
@@ -103,6 +104,7 @@ public class Downloader {
 		Instant lastExport = plugin.imageTresholdCache.getCachedInstant(config);
 		List<File> exportDirs = Arrays.stream(dir.listFiles())
 				.filter(File::isDirectory)
+				.filter(exportDir -> Arrays.asList(dir.list()).contains(exportDir.getName() + ".png"))
 				.collect(Collectors.toList());
 		for (File exportDir : exportDirs) {
 			Instant instant = Paths.getInstantFromFile(exportDir);
