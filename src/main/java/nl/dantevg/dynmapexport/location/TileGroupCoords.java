@@ -2,6 +2,8 @@ package nl.dantevg.dynmapexport.location;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public class TileGroupCoords {
 	public static final String SEPARATOR = "_";
 	
@@ -14,7 +16,20 @@ public class TileGroupCoords {
 	
 	@Override
 	public @NotNull String toString() {
-		return this.x + SEPARATOR + this.y;
+		return x + SEPARATOR + y;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		TileGroupCoords that = (TileGroupCoords) o;
+		return x == that.x && y == that.y;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(x, y);
 	}
 	
 	public static @NotNull TileGroupCoords parse(@NotNull String str) {

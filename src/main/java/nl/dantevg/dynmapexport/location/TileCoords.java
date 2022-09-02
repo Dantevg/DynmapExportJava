@@ -2,6 +2,8 @@ package nl.dantevg.dynmapexport.location;
 
 import org.jetbrains.annotations.NotNull;
 
+import java.util.Objects;
+
 public class TileCoords {
 	public static final String SEPARATOR = ",";
 	
@@ -18,7 +20,20 @@ public class TileCoords {
 	
 	@Override
 	public @NotNull String toString() {
-		return this.x + SEPARATOR + this.y;
+		return x + SEPARATOR + y;
+	}
+	
+	@Override
+	public boolean equals(Object o) {
+		if (this == o) return true;
+		if (o == null || getClass() != o.getClass()) return false;
+		TileCoords that = (TileCoords) o;
+		return x == that.x && y == that.y;
+	}
+	
+	@Override
+	public int hashCode() {
+		return Objects.hash(x, y);
 	}
 	
 	public static @NotNull TileCoords parse(@NotNull String str) {
