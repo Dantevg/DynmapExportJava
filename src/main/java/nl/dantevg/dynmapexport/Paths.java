@@ -53,7 +53,7 @@ public class Paths {
 	 */
 	public static @NotNull File getLocalMapDir(@NotNull DynmapExport plugin, @NotNull ExportConfig config) {
 		return new File(plugin.getDataFolder(),
-				String.format("exports/%s/%s", config.world.name, config.map.prefix));
+				String.format("exports/%s/%s", config.world.name, config.map.name));
 	}
 	
 	/**
