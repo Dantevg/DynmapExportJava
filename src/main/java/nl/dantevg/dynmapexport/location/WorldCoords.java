@@ -21,12 +21,12 @@ public class WorldCoords {
 		double unscaledX = (int) map.worldtomap[0] * x
 				+ (int) map.worldtomap[1] * y
 				+ (int) map.worldtomap[2] * z;
-		int tileX = (int) (unscaledX / SCALE_FACTOR / (1 << zoom)) * (1 << zoom);
+		int tileX = TileCoords.zoomedFloor(unscaledX / SCALE_FACTOR, zoom);
 		
 		double unscaledY = (int) map.worldtomap[3] * x
 				+ (int) map.worldtomap[4] * y
 				+ (int) map.worldtomap[5] * z;
-		int tileY = (int) Math.ceil((unscaledY / SCALE_FACTOR - 1) / (1 << zoom)) * (1 << zoom);
+		int tileY = TileCoords.zoomedCeil(unscaledY / SCALE_FACTOR - 1, zoom);
 		
 		return new TileCoords(tileX, tileY);
 	}

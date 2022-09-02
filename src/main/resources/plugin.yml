@@ -14,6 +14,7 @@ commands:
       /dynmapexport now
       /dynmapexport export <world> <map> <x> <z> <zoom>
       /dynmapexport reload
+      /dynmapexport worldtomap <world> <map> <x> <y> <z> [zoom]
     permission: dynmapexport.*
 permissions:
   dynmapexport.*:

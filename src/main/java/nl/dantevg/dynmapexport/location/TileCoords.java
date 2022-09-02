@@ -18,6 +18,14 @@ public class TileCoords {
 		return new TileGroupCoords(x >> 5, y >> 5);
 	}
 	
+	public @NotNull TileCoords floorToZoom(int zoom) {
+		return new TileCoords(zoomedFloor(x, zoom), zoomedFloor(y, zoom));
+	}
+	
+	public @NotNull TileCoords ceilToZoom(int zoom) {
+		return new TileCoords(zoomedCeil(x, zoom), zoomedCeil(y, zoom));
+	}
+	
 	@Override
 	public @NotNull String toString() {
 		return x + SEPARATOR + y;
@@ -41,6 +49,14 @@ public class TileCoords {
 		int x = Integer.parseInt(str.substring(0, separator - 1));
 		int y = Integer.parseInt(str.substring(separator + 1));
 		return new TileCoords(x, y);
+	}
+	
+	public static int zoomedFloor(double value, int zoom) {
+		return (int) Math.floor(value / (1 << zoom)) * (1 << zoom);
+	}
+	
+	public static int zoomedCeil(double value, int zoom) {
+		return (int) Math.ceil(value / (1 << zoom)) * (1 << zoom);
 	}
 	
 }
