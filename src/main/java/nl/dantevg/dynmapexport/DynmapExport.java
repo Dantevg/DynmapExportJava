@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import nl.dantevg.dynmapexport.location.TileCoords;
 import nl.dantevg.dynmapexport.location.WorldCoords;
 import org.bukkit.Bukkit;
+import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.jetbrains.annotations.NotNull;
@@ -77,12 +78,18 @@ public class DynmapExport extends JavaPlugin {
 	 * Export all configurations. <b>Should be run as an async task to prevent
 	 * server lag!</b>
 	 *
+	 * @param commandSender where to send update and completion logs to, if any
 	 * @return the number of configs that are exported (i.e. they had enough changes)
 	 */
-	public int export() {
+	public int export(@Nullable CommandSender commandSender) {
 		int nExported = 0;
 		Instant now = Instant.now();
 		for (ExportConfig exportConfig : exportConfigs) {
+			if (commandSender != null) {
+				commandSender.sendMessage(String.format("Exporting map %s:%s",
+						exportConfig.world.name, exportConfig.map.name));
+			}
+			
 			Map<TileCoords, File> downloadedTiles = downloader.downloadTiles(exportConfig, now);
 			if (downloadedTiles != null && downloadedTiles.size() > 0) {
 				nExported++;
@@ -92,9 +99,22 @@ public class DynmapExport extends JavaPlugin {
 				}
 			}
 		}
+		
 		logger.log(Level.INFO, String.format("Exported %d configs, skipped %d",
 				nExported, exportConfigs.size() - nExported));
+		if (commandSender != null) commandSender.sendMessage(String.format("Exported %d configs, skipped %d",
+				nExported, exportConfigs.size() - nExported));
 		return nExported;
+	}
+	
+	/**
+	 * Export all configurations. <b>Should be run as an async task to prevent
+	 * server lag!</b>
+	 *
+	 * @return the number of configs that are exported (i.e. they had enough changes)
+	 */
+	public int export() {
+		return export(null);
 	}
 	
 	public void reload() {
