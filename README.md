@@ -1,4 +1,6 @@
 # DynmapExport
+**NOTE: this project has moved to https://github.com/Dantevg/DynmapExport**
+
 This is a Spigot plugin that can automatically export dynmap tiles at a set
 interval. It will only export when at least one tile in an export configuration
 has changed since the last export.
